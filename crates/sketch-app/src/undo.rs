@@ -162,6 +162,7 @@ mod tests {
                     line_style: None,
                     dimension_position: None,
                     dimension_anchor: None,
+                    extra: Default::default(),
                 })
                 .collect(),
             polygons: Vec::new(),

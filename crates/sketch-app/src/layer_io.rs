@@ -201,6 +201,12 @@ impl App {
         Self::normalize_entity_layers(&layers, &mut wrapper);
         let mut page: pages::Page = serde_json::from_value(wrapper["pages"][0].clone())
             .map_err(|e| format!("Invalid geometry: {e}"))?;
+        // Imported elements are new: they must not carry another file's ids.
+        page.extra.clear();
+        page.lines.iter_mut().for_each(|l| l.forget_sketchy_id());
+        page.polygons.iter_mut().for_each(|p| p.forget_sketchy_id());
+        page.labels.iter_mut().for_each(|t| t.forget_sketchy_id());
+        page.symbols.iter_mut().for_each(|s| s.forget_sketchy_id());
         let custom: BTreeMap<String, sketch_core::symbols::Symbol> = match data.get("customSymbols")
         {
             Some(v) => serde_json::from_value(v.clone()).map_err(|e| e.to_string())?,

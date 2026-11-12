@@ -842,6 +842,47 @@ const COLLAPSE: &str = "click (1385, 144)";
 
 const BACKSTAGE_ITEM: &str = "Print Preview...";
 
+/// A two-revision `.sketchy` store in a scratch directory.
+fn two_revision_store(name: &str) -> PathBuf {
+    let dir = std::env::temp_dir().join(format!("sketch-rust-{}-{name}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).expect("scratch dir");
+    let path = dir.join("house.sketchy");
+    let mut app = App::boot(1.0).0;
+    app.subject_info.city = "Springfield".into();
+    app.drawing.lines.push(wall(5, (0.0, 0.0), (10.0, 0.0)));
+    let (_, _) = crate::file_dialogs::with_save_path(Some(path.clone()), || {
+        let _ = app.update(Message::SaveFile);
+    });
+    app.subject_info.city = "Shelbyville".into();
+    app.drawing.lines[0].end = Pt::new(12.0, 0.0);
+    let _ = app.update(Message::SaveFile);
+    path
+}
+
+#[test]
+fn e2e_version_history_panel_banner_and_back_to_latest() {
+    crate::persist::with_temp_store(|| {
+        let path = two_revision_store("e2e-versions");
+        let mut h = harness();
+        h.send(Message::FileDropped(path.clone()));
+        h.script(&["click \"File\"", "expect \"Version History...\"", "click \"Version History...\""]);
+        assert!(h.shows("Mark as Final..."), "the Versions panel opens");
+        assert!(h.shows("(current)"));
+        h.script(&["click \"Open\""]);
+        assert!(h.shows("Restore this version"), "the banner appears");
+        assert!(h.shows("Viewing v1"), "the pill names the version");
+        h.script(&["click \"Back to latest\""]);
+        assert!(!h.shows("Restore this version"), "the banner is gone");
+        let app = state(h);
+        assert!(app.viewing_revision.is_none());
+        assert_eq!(app.dock.active, DockTab::Versions);
+        assert_eq!(app.subject_info.city, "Shelbyville");
+        assert_eq!(app.drawing.lines[0].end.x, 12.0, "the head's geometry is back");
+        let _ = std::fs::remove_dir_all(path.parent().expect("dir"));
+    });
+}
+
 #[test]
 fn e2e_a_file_click_opens_the_backstage() {
     let mut h = harness();
@@ -923,7 +964,7 @@ fn e2e_h_every_tab_shows_its_own_body() {
 fn e2e_click_outside_inside_backstage_keeps_it_open() {
     // A press inside #file-menu (empty space below the items) must not close it.
     let mut h = harness();
-    h.script(&["click \"File\"", "click (100, 740)"]);
+    h.script(&["click \"File\"", "click (100, 790)"]);
     assert!(h.shows(BACKSTAGE_ITEM));
 }
 
@@ -1739,15 +1780,15 @@ fn e2e_fixed_controls_file_save_and_save_as_buttons() {
     let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../target/single-save-016");
     std::fs::create_dir_all(&dir).unwrap();
     for (click, file) in [
-        ("click (100, 154)", "first-save.skx"),
-        ("click (100, 190)", "save-as.skx"),
+        ("click (100, 154)", "first-save.sketchy"),
+        ("click (100, 190)", "save-as.sketchy"),
     ] {
         let path = dir.join(file);
         let mut h = defined_square();
         let (_, requests) = crate::file_dialogs::with_save_path(Some(path.clone()), || {
             h.script(&["type escape", "click \"File\"", click]);
         });
-        assert_eq!(requests, ["Untitled.skx"], "exactly one native picker");
+        assert_eq!(requests, ["Untitled.sketchy"], "exactly one native picker");
         let (_, named_requests) = crate::file_dialogs::with_save_path(None, || {
             h.script(&[
                 "click \"Home\"",
@@ -1764,9 +1805,7 @@ fn e2e_fixed_controls_file_save_and_save_as_buttons() {
         assert!(app.dialog.is_none(), "no extra naming dialog");
         let chosen_name = path.file_stem().unwrap().to_str().unwrap();
         assert_eq!(app.file_name, chosen_name);
-        let saved = sketch_core::skx::read(&std::fs::read(&path).unwrap())
-            .unwrap()
-            .model;
+        let saved = read_saved(&path);
         assert_eq!(saved["fileName"], chosen_name);
         assert_eq!(saved["pages"][0]["lines"].as_array().unwrap().len(), 4);
         assert_eq!(saved["pages"][0]["polygons"].as_array().unwrap().len(), 1);
@@ -1778,11 +1817,23 @@ fn e2e_fixed_controls_file_save_and_save_as_buttons() {
     }
 }
 
+/// A saved sketch's model, whichever format `path` holds.
+fn read_saved(path: &std::path::Path) -> serde_json::Value {
+    let bytes = std::fs::read(path).unwrap();
+    if sketch_core::sketchy::store::is_store_bytes(&bytes) {
+        return crate::decode_store(path).unwrap().model;
+    }
+    sketch_core::skx::read(&bytes)
+        .map(|r| r.model)
+        .unwrap_or_else(|_| serde_json::from_slice(&bytes).unwrap())
+}
+
 #[test]
-fn e2e_direct_save_opened_files_keep_path_and_format() {
+fn e2e_opened_legacy_save_asks_and_opened_store_saves_in_place() {
     let dir = direct_save_test_dir();
     let mut fixture = state(defined_square());
     let model = fixture.build_save_model();
+    // A legacy file never saves silently: Save asks and writes a `.sketchy`.
     for (file, json) in [("opened.skx", false), ("opened.json", true)] {
         let path = dir.join(file);
         let bytes = if json {
@@ -1790,27 +1841,41 @@ fn e2e_direct_save_opened_files_keep_path_and_format() {
         } else {
             sketch_core::skx::write(&model, &Default::default()).unwrap()
         };
-        std::fs::write(&path, bytes).unwrap();
+        std::fs::write(&path, &bytes).unwrap();
         let mut h = harness();
         let (_, requests) = crate::file_dialogs::with_open_path(Some(path.clone()), || {
             h.script(&["click \"File\"", "click (100, 118)"]);
         });
         assert_eq!(requests, 1, "actual Open button");
-        let (_, requests) = crate::file_dialogs::with_save_path(None, || {
+        let target = dir.join(format!("{file}.sketchy"));
+        let (_, requests) = crate::file_dialogs::with_save_path(Some(target.clone()), || {
             h.script(&["click \"Home\"", "click (538, 93)", "click (34, 15)"]);
         });
-        assert!(requests.is_empty(), "QAT Save must write directly");
+        assert_eq!(requests.len(), 1, "QAT Save asks for a `.sketchy` name");
         let app = state(h);
-        assert_eq!(app.current_file.as_ref().unwrap().path, path);
-        let saved = std::fs::read(&path).unwrap();
-        let saved: serde_json::Value = if json {
-            serde_json::from_slice(&saved).unwrap()
-        } else {
-            sketch_core::skx::read(&saved).unwrap().model
-        };
+        assert_eq!(app.current_file.as_ref().unwrap().path, target);
+        assert_eq!(std::fs::read(&path).unwrap(), bytes, "legacy file untouched");
+        let saved = read_saved(&target);
         assert_eq!(saved["pages"][0]["northAngle"], 90.0);
         assert_eq!(saved["pages"][0]["polygons"].as_array().unwrap().len(), 1);
     }
+    // An opened `.sketchy` store saves in place.
+    let path = dir.join("opened.sketchy");
+    crate::write_store(&model, &path, None).unwrap();
+    let mut h = harness();
+    let (_, requests) = crate::file_dialogs::with_open_path(Some(path.clone()), || {
+        h.script(&["click \"File\"", "click (100, 118)"]);
+    });
+    assert_eq!(requests, 1, "actual Open button");
+    let (_, requests) = crate::file_dialogs::with_save_path(None, || {
+        h.script(&["click \"Home\"", "click (538, 93)", "click (34, 15)"]);
+    });
+    assert!(requests.is_empty(), "QAT Save must write directly");
+    let app = state(h);
+    assert_eq!(app.current_file.as_ref().unwrap().path, path);
+    let saved = read_saved(&path);
+    assert_eq!(saved["pages"][0]["northAngle"], 90.0);
+    assert_eq!(saved["pages"][0]["polygons"].as_array().unwrap().len(), 1);
 }
 
 fn direct_save_test_dir() -> PathBuf {
@@ -1822,14 +1887,15 @@ fn direct_save_test_dir() -> PathBuf {
 #[test]
 fn e2e_direct_save_as_changes_target_only_after_success() {
     let dir = direct_save_test_dir();
-    let blocked = dir.join("blocked.skx");
+    let blocked = dir.join("blocked.sketchy");
     std::fs::create_dir_all(&blocked).unwrap();
     for (case, destination) in [
         ("cancel", None),
         ("failed", Some(blocked)),
-        ("success", Some(dir.join("copy.json"))),
+        ("success", Some(dir.join("copy.sketchy"))),
+        ("success-json", Some(dir.join("copy.json"))),
     ] {
-        let original = dir.join(format!("{case}-original.skx"));
+        let original = dir.join(format!("{case}-original.sketchy"));
         let mut h = defined_square();
         crate::file_dialogs::with_save_path(Some(original.clone()), || {
             h.script(&["type escape", "click \"File\"", "click (100, 154)"]);
@@ -1849,7 +1915,7 @@ fn e2e_direct_save_as_changes_target_only_after_success() {
         });
         assert!(requests.is_empty());
         let app = state(h);
-        if case == "success" {
+        if case.starts_with("success") {
             let path = destination.unwrap();
             assert_eq!(app.current_file.as_ref().unwrap().path, path);
             assert_eq!(app.file_name, "copy");
@@ -1858,14 +1924,11 @@ fn e2e_direct_save_as_changes_target_only_after_success() {
                 original_bytes,
                 "Save As leaves original intact"
             );
-            let saved: serde_json::Value =
-                serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+            let saved = read_saved(&path);
             assert_eq!(saved["pages"][0]["northAngle"], 90.0);
         } else {
             assert_eq!(app.current_file.as_ref().unwrap().path, original);
-            let saved = sketch_core::skx::read(&std::fs::read(original).unwrap())
-                .unwrap()
-                .model;
+            let saved = read_saved(&original);
             assert_eq!(
                 saved["pages"][0]["northAngle"], 90.0,
                 "failed/cancelled Save As retains original target"
@@ -1944,11 +2007,14 @@ fn e2e_save_as_original_is_unchanged_after_repeated_saves() {
     let root = direct_save_test_dir().join("save-as-matrix");
     let mut evidence = Vec::new();
     for (case, a, b) in [
+        ("sketchy-sketchy", "original.sketchy", "new.sketchy"),
+        ("skx-sketchy", "original.skx", "new.sketchy"),
+        ("json-sketchy", "original.json", "new.sketchy"),
         ("skx-skx", "original.skx", "new.skx"),
         ("skx-json", "original.skx", "new.json"),
         ("json-skx", "original.json", "new.skx"),
         ("json-json", "original.json", "new.json"),
-        ("same-name", "original/house.skx", "new/house.skx"),
+        ("same-name", "original/house.sketchy", "new/house.sketchy"),
     ] {
         let dir = root.join(case);
         let original = dir.join(a);
@@ -1989,9 +2055,7 @@ fn e2e_save_as_original_is_unchanged_after_repeated_saves() {
             );
             let bytes = std::fs::read(&copy).unwrap();
             assert_ne!(bytes, previous, "{case}: {route} did not save edits");
-            let saved = sketch_core::skx::read(&bytes)
-                .map(|r| r.model)
-                .unwrap_or_else(|_| serde_json::from_slice(&bytes).unwrap());
+            let saved = read_saved(&copy);
             assert_eq!(saved["pages"][0]["northAngle"], north, "{case}: {route}");
             assert_eq!(saved["pages"][0]["polygons"][0]["type"], "GLA1");
             previous = bytes;
@@ -2013,7 +2077,7 @@ fn e2e_save_as_original_is_unchanged_after_repeated_saves() {
 
 #[test]
 fn e2e_direct_save_new_document_forgets_previous_target() {
-    let path = direct_save_test_dir().join("before-new.skx");
+    let path = direct_save_test_dir().join("before-new.sketchy");
     let mut h = defined_square();
     crate::file_dialogs::with_save_path(Some(path.clone()), || {
         h.script(&["type escape", "click \"File\"", "click (100, 154)"]);
@@ -2028,7 +2092,7 @@ fn e2e_direct_save_new_document_forgets_previous_target() {
             "click (100, 154)",
         ]);
     });
-    assert_eq!(requests, ["Untitled.skx"]);
+    assert_eq!(requests, ["Untitled.sketchy"]);
     let app = state(h);
     assert!(app.current_file.is_none());
     assert!(app.drawing.lines.is_empty());
@@ -7432,7 +7496,7 @@ fn e2e_command_palette_file_commands_use_native_workflows() {
     h.send(Message::CommandPaletteQuery("Save As".into()));
     let (_, requests) =
         crate::file_dialogs::with_save_path(None, || h.send(Message::CommandPaletteRun));
-    assert_eq!(requests, ["Untitled.skx"]);
+    assert_eq!(requests, ["Untitled.sketchy"]);
     let app = state(h);
     assert!(!app.command_palette_open);
     assert!(

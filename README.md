@@ -36,6 +36,9 @@ Quick start: press `E`, click a start point, type a length and press an arrow ke
 each wall, press `A` to close the area, then pick what the area is in the Define Area
 panel (`F4`).
 
+Sketches save as `.sketchy` files in the open Sketchy format, and every save is kept as
+a version. `.sketchy.json` files open too.
+
 ### Appraise-It integration
 
 1. Install Sketch where it will stay.

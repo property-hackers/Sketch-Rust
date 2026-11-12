@@ -22,7 +22,8 @@ pub fn save_sketch(default_name: &str) -> Option<PathBuf> {
     #[cfg(not(test))]
     {
         rfd::FileDialog::new()
-            .add_filter("Sketch", &["skx", "json"])
+            .add_filter("Sketchy sketch", &["sketchy"])
+            .add_filter("Legacy sketch", &["skx", "json"])
             .set_file_name(default_name)
             .save_file()
     }

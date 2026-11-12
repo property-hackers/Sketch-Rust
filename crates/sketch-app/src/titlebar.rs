@@ -73,7 +73,8 @@ fn control<'a>(
 pub fn view<'a>(
     close_hover: bool,
     maximized: bool,
-    save_state: &'static str,
+    save_state: &str,
+    save_final: bool,
     undo_enabled: bool,
     redo_enabled: bool,
     title: String,
@@ -174,7 +175,13 @@ pub fn view<'a>(
             214.0,
             4.0,
             boxed(
-                container(label(save_state, 11.0, SEGOE, muted(), 15.0)).padding(Padding {
+                container(label(
+                    save_state,
+                    11.0,
+                    SEGOE,
+                    if save_final { hex(0x5dae84) } else { muted() },
+                    15.0,
+                )).padding(Padding {
                     top: 3.0,
                     left: 10.0,
                     ..Padding::ZERO

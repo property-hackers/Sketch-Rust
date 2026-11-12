@@ -55,13 +55,26 @@ pub struct SketchLine {
     pub dimension_position: Option<Pt>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dimension_anchor: Option<Pt>,
+    /// Keys this build does not model (Sketchy residue such as `sketchy_id`
+    /// or `sketchy_other`), kept so a save writes them back unchanged.
+    #[serde(flatten)]
+    pub extra: serde_json::Map<String, serde_json::Value>,
 }
+
+/// Residual key naming an element's id in an opened Sketchy file.
+pub const SKETCHY_ID_KEY: &str = "sketchy_id";
 
 fn is_zero(v: &f64) -> bool {
     *v == 0.0
 }
 
 impl SketchLine {
+    /// Forget the Sketchy id: a copy of this wall is a new element and must
+    /// not reuse the original's id when written back.
+    pub fn forget_sketchy_id(&mut self) {
+        self.extra.remove(SKETCHY_ID_KEY);
+    }
+
     /// The geometry engine's view of this wall.
     pub fn geometry(&self) -> Line {
         Line {
@@ -101,6 +114,7 @@ mod tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         };
         let json = serde_json::to_value(&line).unwrap();
         assert_eq!(json["type"], "exterior");
@@ -236,6 +250,18 @@ pub struct Polygon {
     pub label_underline: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label_color: Option<String>,
+    /// Keys this build does not model (Sketchy residue such as `sketchy_id`
+    /// or `sketchy_other`), kept so a save writes them back unchanged.
+    #[serde(flatten)]
+    pub extra: serde_json::Map<String, serde_json::Value>,
+}
+
+impl Polygon {
+    /// Forget the Sketchy id: a copy of this area is a new element and must
+    /// not reuse the original's id when written back.
+    pub fn forget_sketchy_id(&mut self) {
+        self.extra.remove(SKETCHY_ID_KEY);
+    }
 }
 
 fn one_f64() -> f64 {

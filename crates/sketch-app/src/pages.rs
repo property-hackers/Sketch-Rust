@@ -42,6 +42,10 @@ pub struct Page {
     /// `dimensionChains` (screen 9).
     #[serde(default)]
     pub dimension_chains: Vec<crate::chains::ChainRecord>,
+    /// Keys this build does not model (Sketchy residue such as `sketchy_id`
+    /// or `sketchy_other`), kept so a save writes them back unchanged.
+    #[serde(flatten)]
+    pub extra: serde_json::Map<String, serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]

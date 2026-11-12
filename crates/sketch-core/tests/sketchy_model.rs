@@ -37,7 +37,10 @@ fn rejects_non_sketchy() {
         Document::from_json(&v.to_string()),
         Err(SketchyError::UnsupportedVersion(_))
     ));
+    // Draft minors may break each other: only 0.1 and 0.2 are read.
     v["format_version"] = json!("0.7");
+    assert!(matches!(Document::from_json(&v.to_string()), Err(SketchyError::UnsupportedVersion(_))));
+    v["format_version"] = json!("0.1");
     assert!(Document::from_json(&v.to_string()).is_ok());
 }
 

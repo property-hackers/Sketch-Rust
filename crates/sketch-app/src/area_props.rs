@@ -246,6 +246,7 @@ mod tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         }
     }
 
@@ -303,6 +304,7 @@ mod tests {
             label_italic: None,
             label_underline: None,
             label_color: None,
+            extra: Default::default(),
         };
         poly.attributes.clear();
         d.polygons = vec![poly];

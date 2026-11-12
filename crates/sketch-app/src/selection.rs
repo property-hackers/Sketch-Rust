@@ -266,6 +266,7 @@ mod tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         }
     }
 
@@ -344,6 +345,7 @@ mod tests {
             label_italic: None,
             label_underline: None,
             label_color: None,
+            extra: Default::default(),
         };
         assert_eq!(
             hit_test_at(Pt::new(5.0, 5.0), &[], &[poly], 1.0, &|_| true),
@@ -398,6 +400,7 @@ mod tests {
             label_italic: None,
             label_underline: None,
             label_color: None,
+            extra: Default::default(),
         };
         // Right on the wall: the wall.
         assert_eq!(
@@ -707,6 +710,7 @@ mod by_type_tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         }
     }
 
@@ -745,6 +749,7 @@ mod by_type_tests {
             label_italic: None,
             label_underline: None,
             label_color: None,
+            extra: Default::default(),
         }
     }
 
@@ -870,6 +875,7 @@ mod fence_tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         }
     }
 
@@ -908,6 +914,7 @@ mod fence_tests {
             label_italic: None,
             label_underline: None,
             label_color: None,
+            extra: Default::default(),
         }
     }
 

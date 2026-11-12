@@ -576,6 +576,7 @@ mod tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         }
     }
 
@@ -627,6 +628,7 @@ mod tests {
             label_italic: None,
             label_underline: None,
             label_color: None,
+            extra: Default::default(),
         };
         poly.edges = Polygon::build_edges(&poly.points, &d.lines);
         d.polygons = vec![poly];
@@ -903,6 +905,7 @@ mod move_tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         }
     }
 
@@ -949,6 +952,7 @@ mod move_tests {
             label_italic: None,
             label_underline: None,
             label_color: None,
+            extra: Default::default(),
         };
         poly.edges = Polygon::build_edges(&poly.points, &d.lines);
         d.polygons = vec![poly];

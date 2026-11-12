@@ -25,7 +25,7 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-use super::{SketchyError, FORMAT};
+use super::{SketchyError, FORMAT, SUPPORTED_VERSIONS};
 
 /// Deepest nesting of arrays and objects a document may have (the root counts as 1).
 pub const MAX_DEPTH: usize = 64;
@@ -361,12 +361,6 @@ element! {
         /// Boundary the shape is drawn to.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub measured_to: Option<String>,
-        /// Ceiling height override.
-        #[serde(default, skip_serializing_if = "Option::is_none", serialize_with = "num::ser")]
-        pub ceiling_height: Option<f64>,
-        /// Part of the ceiling is lower.
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub ceiling_sloped: Option<bool>,
         /// Space height where it differs from the ceiling.
         #[serde(default, skip_serializing_if = "Option::is_none", serialize_with = "num::ser")]
         pub height: Option<f64>,
@@ -472,9 +466,6 @@ element! {
         /// Level a stair leads to.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub connects_to: Option<String>,
-        /// Level whose area a stair counts toward.
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub counted_on: Option<String>,
         /// Finished flag.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub finished: Option<bool>,
@@ -517,9 +508,6 @@ element! {
         /// Floor height relative to the ground reference.
         #[serde(default, skip_serializing_if = "Option::is_none", serialize_with = "num::ser")]
         pub elevation: Option<f64>,
-        /// Default ceiling height.
-        #[serde(default, skip_serializing_if = "Option::is_none", serialize_with = "num::ser")]
-        pub ceiling_height: Option<f64>,
         /// Spaces on the level.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         pub spaces: Vec<Space>,
@@ -647,15 +635,16 @@ pub struct Document {
 }
 
 impl Document {
-    /// Parses a document, rejecting non-sketchy files and unsupported major versions.
-    /// Newer minor versions of major `0` are accepted.
+    /// Parses a document, rejecting non-sketchy files and any `format_version` outside
+    /// [`SUPPORTED_VERSIONS`]. Draft `0.x` minors may break each other, so a newer minor is
+    /// rejected rather than guessed at.
     pub fn from_json(text: &str) -> Result<Self, SketchyError> {
         let value: Value = serde_json::from_str(text).map_err(|e| SketchyError::Json(e.to_string()))?;
         Self::from_value(value)
     }
 
     /// Builds a document from parsed JSON: rejects non-sketchy values, unsupported
-    /// major versions and nesting deeper than [`MAX_DEPTH`].
+    /// versions and nesting deeper than [`MAX_DEPTH`].
     pub fn from_value(value: Value) -> Result<Self, SketchyError> {
         if too_deep(&value) {
             return Err(SketchyError::Json(format!("document is nested deeper than {MAX_DEPTH} levels")));
@@ -667,7 +656,7 @@ impl Document {
             .get("format_version")
             .and_then(Value::as_str)
             .ok_or_else(|| SketchyError::Json("missing format_version".to_string()))?;
-        if version.split('.').next() != Some("0") {
+        if !SUPPORTED_VERSIONS.contains(&version) {
             return Err(SketchyError::UnsupportedVersion(version.to_string()));
         }
         serde_json::from_value(value).map_err(|e| SketchyError::Json(e.to_string()))

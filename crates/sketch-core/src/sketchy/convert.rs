@@ -15,6 +15,11 @@
 //! canonical `w-<int>` / `a-<int>` get a fresh integer app id and keep the
 //! original in `sketchy_id`. Documents in other length units are scaled to
 //! feet on read and written back in their original unit.
+//!
+//! Draft 0.2: curves are Sketchy bulges (DXF sign, see [`bulge_of_bow`]) mapped exactly onto
+//! the app's own `bowAngle` (and its Height mode's `arcHeight`, the same arc). A circle opens
+//! as a four-point polygon of four outward quarter arcs. A 0.1 document is upgraded to 0.2 first
+//! ([`migrate_0_1`]); every sweep the app cannot hold (over 359 degrees) is parked, not clamped.
 
 use std::collections::{HashMap, HashSet};
 use std::f64::consts::PI;
@@ -22,7 +27,8 @@ use std::f64::consts::PI;
 use serde_json::{json, Map, Value};
 
 use super::model::{Document, Level, Shape, Space, Wall};
-use super::{SketchyError, FORMAT, FORMAT_VERSION};
+use super::{SketchyError, FORMAT, FORMAT_VERSION, SCHEMA_URL, SCHEMA_URL_0_1};
+use crate::geometry::MAX_BOW_ANGLE;
 
 /// Extras namespace for Sketch Rust data.
 pub const NS: &str = "io.github.garmonbz.sketchrust";
@@ -30,8 +36,14 @@ pub const NS: &str = "io.github.garmonbz.sketchrust";
 const SKETCHY_OTHER: &str = "sketchy_other";
 /// Residual key holding shape fields beyond `type`, `points` and `bulges`.
 const SHAPE_REST: &str = "shape_rest";
-/// Residual key holding the original circle/ellipse and the points approximating it.
+/// Residual key holding the original circle/ellipse, the points approximating it and the
+/// bulges the app polygon showed for it.
 const SHAPE_ORIG: &str = "shape_orig";
+/// Residual key holding a polygon's original `bulges` and the bulges the app showed for them,
+/// when the app cannot hold them exactly (a sweep beyond its limit).
+const SHAPE_BULGES: &str = "shape_bulges";
+/// Element residual key holding fields a 0.1 element had that 0.2 dropped.
+const DROPPED_0_1: &str = "sketchy_0_1";
 /// Residual key recording what a lossy core value looked like when it was parked.
 const LOSSY: &str = "lossy";
 /// App-object key recording an annotation's index in the Sketchy drawing order.
@@ -47,7 +59,13 @@ const BULGE_EPS: f64 = 1e-9;
 /// Endpoint tolerance, in feet, when matching a space edge to a wall.
 const SEGMENT_EPS: f64 = 1e-6;
 const FT_PER_M: f64 = 3.280_839_895_013_123;
+/// Ellipses have no app geometry, so they open as this many points.
 const CIRCLE_SEGMENTS: usize = 48;
+/// Bulge of a quarter arc that bows outward on a counter-clockwise ring (DXF: positive is
+/// counter-clockwise, bowing right of travel), the app's -90 degree bow (see [`bulge_of_bow`]).
+fn quarter_arc_bulge() -> f64 {
+    (PI / 8.0).tan()
+}
 /// App ids are in `1..MAX_ID` and `nextId` in `1..=MAX_ID` (2^53), so every id is
 /// exact as a JavaScript number. Sketchy ids naming a number outside that range are
 /// treated as non-canonical and get a fresh app id.
@@ -162,14 +180,34 @@ fn as_object<'a>(v: &'a Value, what: &str) -> Result<&'a Map<String, Value>, Ske
 
 /// The app's world is +y up, like Sketchy. `geometry.rs` `flatten_ring` and
 /// `render.rs` `curve_metrics` both put the apex of a positive bow on the left
-/// normal `(-dy, dx)` of start to end, and Sketchy's positive bulge also bows
-/// left, so the two share a sign. `tan(bow / 4)` is the bulge of a `bow` degree arc.
+/// normal `(-dy, dx)` of start to end. Sketchy 0.2 follows DXF: a positive bulge is a
+/// counter-clockwise arc from start to end and bows to the RIGHT (SPEC 0.2 section 4.2: the
+/// edge `[0,0]` to `[10,0]` with bulge `1` passes through `[5,-5]`), so the two have opposite
+/// signs. `|bulge| = tan(|bow| / 4)` for a `bow` degree arc.
+///
+/// Rounded to 12 decimals, deliberately, so a bulge survives bulge to bow to bulge unchanged
+/// (a reopened file hashes the same and a circle's quarter arcs come out as one clean value).
 fn bulge_of_bow(bow: f64) -> f64 {
-    (bow * PI / 720.0).tan()
+    let bulge = -(bow * PI / 720.0).tan();
+    (bulge * 1e12).round() / 1e12 + 0.0
 }
 
+/// The app bow of a bulge, clamped to the app's limit (`MAX_BOW_ANGLE`). A bulge beyond the
+/// limit is not representable: callers keep the original (see [`SHAPE_BULGES`]).
 fn bow_of_bulge(bulge: f64) -> f64 {
-    bulge.atan() * 720.0 / PI
+    (-bulge.atan() * 720.0 / PI).clamp(-MAX_BOW_ANGLE, MAX_BOW_ANGLE)
+}
+
+/// The signed rise of a `bow` degree arc over a chord (the app's `arcHeight`).
+fn arc_height(chord: f64, bow: f64) -> f64 {
+    chord / 2.0 * (bow * PI / 720.0).tan()
+}
+
+/// Length of an app object's `start`-`end` chord, when it has both.
+fn chord_of(obj: &Map<String, Value>) -> Option<f64> {
+    let p = |k: &str| Some((obj.get(k)?.get("x")?.as_f64()?, obj.get(k)?.get("y")?.as_f64()?));
+    let ((x0, y0), (x1, y1)) = (p("start")?, p("end")?);
+    Some((x1 - x0).hypot(y1 - y0))
 }
 
 /// Feet per document length unit.
@@ -360,10 +398,11 @@ impl Ctx {
     }
 }
 
-/// A straight segment in app coordinates; `id` is set for display walls made so far.
+/// A segment in app coordinates with its bulge; `id` is set for display walls made so far.
 struct Seg {
     a: [f64; 2],
     b: [f64; 2],
+    bulge: f64,
     id: Option<i64>,
 }
 
@@ -372,8 +411,12 @@ fn same_point(p: [f64; 2], q: [f64; 2]) -> bool {
 }
 
 impl Seg {
-    fn joins(&self, a: [f64; 2], b: [f64; 2]) -> bool {
-        (same_point(self.a, a) && same_point(self.b, b)) || (same_point(self.a, b) && same_point(self.b, a))
+    /// Whether this segment is the edge `a` to `b` with `bulge`: the same ends and the same
+    /// arc (walking it backwards flips the bulge's sign, so the quarter arcs of one circle differ).
+    fn joins(&self, a: [f64; 2], b: [f64; 2], bulge: f64) -> bool {
+        let same = |x: f64, y: f64| (x - y).abs() <= SEGMENT_EPS;
+        (same_point(self.a, a) && same_point(self.b, b) && same(self.bulge, bulge))
+            || (same_point(self.a, b) && same_point(self.b, a) && same(self.bulge, -bulge))
     }
 }
 
@@ -413,7 +456,7 @@ impl Ctx {
             let mut segs: Vec<Seg> = level
                 .walls
                 .iter()
-                .map(|w| Seg { a: self.to_app_xy(w.start), b: self.to_app_xy(w.end), id: None })
+                .map(|w| Seg { a: self.to_app_xy(w.start), b: self.to_app_xy(w.end), bulge: w.bulge.unwrap_or(0.0), id: None })
                 .collect();
             for subdivision in [false, true] {
                 for space in level.spaces.iter().filter(|s| s.within.is_some() == subdivision && wants_display(s)) {
@@ -426,18 +469,20 @@ impl Ctx {
                         if same_point(a, b) {
                             continue;
                         }
-                        match segs.iter().find(|s| s.joins(a, b)) {
+                        let bulge = outline.bulges.as_ref().and_then(|b| b.get(i)).copied().unwrap_or(0.0);
+                        match segs.iter().find(|s| s.joins(a, b, bulge)) {
                             Some(Seg { id: Some(id), .. }) => assigned.push((i, *id)),
                             Some(_) => {}
                             None => {
                                 let id = self.display_id(space, i)?;
-                                segs.push(Seg { a, b, id: Some(id) });
-                                let bow = outline.bulges.as_ref().and_then(|b| b.get(i)).map_or(0.0, |b| bow_of_bulge(*b));
+                                segs.push(Seg { a, b, bulge, id: Some(id) });
+                                let bow = bow_of_bulge(bulge);
                                 let mut line = json!({"id": id, "start": {"x": num(a[0]), "y": num(a[1])},
                                                       "end": {"x": num(b[0]), "y": num(b[1])},
                                                       "type": kind, DISPLAY: true});
                                 if bow != 0.0 {
                                     line["bowAngle"] = num(bow);
+                                    line["arcHeight"] = num(arc_height((b[0] - a[0]).hypot(b[1] - a[1]), bow));
                                 }
                                 self.display_lines[li].push(line);
                                 assigned.push((i, id));
@@ -550,7 +595,12 @@ fn bulge_back(_: &Ctx, obj: &mut Map<String, Value>, core: &Map<String, Value>) 
     if bow != 0.0 || obj.contains_key("bowAngle") {
         obj.insert("bowAngle".into(), num(bow));
     }
-    obj.remove("arcHeight"); // stale; apply_model recomputes it
+    // The Height-mode rise of the same arc, so the two never disagree (the app also
+    // recomputes it on load); without a chord the stale value is just dropped.
+    match chord_of(obj).filter(|_| bow != 0.0) {
+        Some(chord) => obj.insert("arcHeight".into(), num(arc_height(chord, bow))),
+        None => obj.remove("arcHeight"),
+    };
 }
 
 fn thickness_fwd(ctx: &Ctx, obj: &Map<String, Value>) -> Map<String, Value> {
@@ -1095,6 +1145,10 @@ fn derive_use(obj: &Map<String, Value>) -> Map<String, Value> {
     } else if let Some((usage, enclosure)) = by_code {
         m.insert("use".into(), usage.into());
         m.insert("enclosure".into(), enclosure.into());
+    } else if code.as_deref() == Some("UND") {
+        // `UND` is the app's "no code yet" placeholder: it says nothing about
+        // use, so stamping it on a space that has none must not displace the
+        // file's own `use`.
     } else {
         let (usage, finished) = match group.as_deref() {
             Some("GAR") => ("garage", None),
@@ -1307,7 +1361,8 @@ impl Ctx {
                 app.push('_');
             }
             self.layer_sid.insert(app.clone(), sid.clone());
-            self.layer_app.insert(sid, app);
+            // Two layers may share a Sketchy id; the first keeps it, so reopening never renames.
+            self.layer_app.entry(sid).or_insert(app);
         }
         let assigned = pres.and_then(|p| p.get("element_layers")).and_then(Value::as_object);
         for (el, layer) in assigned.into_iter().flatten().filter_map(|(k, v)| Some((k, v.as_str()?))) {
@@ -1495,14 +1550,26 @@ fn ellipse_points(center: [f64; 2], rx: f64, ry: f64, rotation_deg: f64) -> Vec<
         .collect()
 }
 
+/// The four points a circle opens as, counter-clockwise at 0, 90, 180 and 270 degrees. Each
+/// edge is a 90 degree arc bowing outward, so together they are the circle (the app needs at
+/// least three points to fill, measure and export a polygon).
+fn circle_points(center: [f64; 2], radius: f64) -> Vec<[f64; 2]> {
+    vec![
+        [center[0] + radius, center[1]],
+        [center[0], center[1] + radius],
+        [center[0] - radius, center[1]],
+        [center[0], center[1] - radius],
+    ]
+}
+
 fn outline_of(shape: &Shape, shape_value: &Value) -> Option<Outline> {
     match shape {
         Shape::Polygon { points, bulges, .. } => {
             Some(Outline { points: points.clone(), bulges: bulges.clone(), original: None })
         }
         Shape::Circle { center, radius, .. } => Some(Outline {
-            points: ellipse_points(*center, *radius, *radius, 0.0),
-            bulges: None,
+            points: circle_points(*center, *radius),
+            bulges: Some(vec![quarter_arc_bulge(); 4]),
             original: Some(shape_value.clone()),
         }),
         Shape::Ellipse { center, radius_x, radius_y, rotation, .. } => Some(Outline {
@@ -1526,26 +1593,72 @@ fn space_from_polygon(ctx: &Ctx, poly: &Value) -> Result<Space, SketchyError> {
         .collect::<Result<Vec<_>, _>>()?;
     let (residual, mut other) = take_residual(obj, &["id"]);
     let original = other.as_mut().and_then(|o| o.remove(SHAPE_ORIG));
+    let parked_bulges = other.as_mut().and_then(|o| o.remove(SHAPE_BULGES));
+    let unchanged_original = original
+        .as_ref()
+        .filter(|o| approx_eq(o.get("points"), obj.get("points")) && approx_eq(o.get("bulges"), core.get("bulges")))
+        .and_then(|o| o.get("shape"))
+        .and_then(Value::as_object);
     let mut shape = Map::new();
-    if let Some(Value::Object(orig)) = original.as_ref().and_then(|o| o.get("shape")).filter(|_| {
-        original.as_ref().and_then(|o| o.get("points")).is_some_and(|p| approx_eq(Some(p), obj.get("points")))
-    }) {
+    if let Some(orig) = unchanged_original {
         // Unchanged approximation: write the original circle/ellipse back.
         shape = orig.clone();
         core.remove("bulges");
     } else {
+        let count = points.len();
         shape.insert("type".into(), "polygon".into());
         shape.insert("points".into(), Value::Array(points));
-        if let Some(b) = core.remove("bulges") {
+        if let Some(b) = restored_bulges(parked_bulges.as_ref(), core.remove("bulges"), count) {
             shape.insert("bulges".into(), b);
         }
-        if let Some(Value::Object(rest)) = other.as_mut().and_then(|o| o.remove(SHAPE_REST)) {
+        if let Some(Value::Object(mut rest)) = other.as_mut().and_then(|o| o.remove(SHAPE_REST)) {
+            drop_misaligned(&mut rest, count);
             shape = merge_objects(rest, shape);
         }
     }
     core.insert("id".into(), Ctx::element_id("a-", obj)?.into());
     core.insert("shape".into(), Value::Object(shape));
     serde_json::from_value(finish_element(core, residual, other)).map_err(|e| err(e.to_string()))
+}
+
+/// Whether two bulge lists are the same arcs (a missing value is a straight edge).
+fn bulges_equiv(a: Option<&Value>, b: Option<&Value>) -> bool {
+    let list = |v: Option<&Value>| -> Vec<f64> {
+        v.and_then(Value::as_array).map_or_else(Vec::new, |a| a.iter().map(|x| x.as_f64().unwrap_or(0.0)).collect())
+    };
+    let (a, b) = (list(a), list(b));
+    (0..a.len().max(b.len())).all(|i| (a.get(i).copied().unwrap_or(0.0) - b.get(i).copied().unwrap_or(0.0)).abs() <= BULGE_EPS)
+}
+
+/// The polygon's bulges: the parked originals while the app still shows what it showed for
+/// them (an unedited oversized sweep), else what the app shows now.
+///
+/// Only while `orig`, `applied` and `now` all still have one entry per point: a vertex added or
+/// removed since changes the edge count, and the original would no longer fit the ring.
+fn restored_bulges(parked: Option<&Value>, now: Option<Value>, points: usize) -> Option<Value> {
+    let len = |v: Option<&Value>| v.and_then(Value::as_array).map(Vec::len);
+    match parked {
+        Some(p)
+            if len(p.get("orig")) == Some(points)
+                && len(p.get("applied")).is_none_or(|n| n == points)
+                && len(now.as_ref()).is_none_or(|n| n == points)
+                && bulges_equiv(p.get("applied"), now.as_ref()) =>
+        {
+            p.get("orig").cloned()
+        }
+        _ => now,
+    }
+}
+
+/// Drops per-edge arrays (`edges`, `edge_measured_to`) that no longer have one entry per
+/// point: the polygon was edited in the app, and a misaligned array would label the wrong edges.
+/// Arrays are kept whenever the count is unchanged: the app moves vertices but never reorders them.
+fn drop_misaligned(shape: &mut Map<String, Value>, points: usize) {
+    for key in ["edges", "edge_measured_to"] {
+        if shape.get(key).and_then(Value::as_array).is_some_and(|a| a.len() != points) {
+            shape.remove(key);
+        }
+    }
 }
 
 /// Points the polygon's edges at its display walls.
@@ -1590,11 +1703,15 @@ fn polygon_from_space(ctx: &Ctx, level: usize, space: &Space) -> Result<Value, S
     apply_layer(ctx, &mut obj, &space.id);
     let mut rest = sketchy_rest(&view, SPACE_OWNED);
     park_leftovers(ctx, &obj, &view, POLYGON_GROUPS, &mut rest);
+    let applied = bulges_fwd(ctx, &obj).remove("bulges");
     match outline.original {
         Some(shape) => {
-            rest.insert(SHAPE_ORIG.into(), json!({"shape": shape, "points": points}));
+            rest.insert(SHAPE_ORIG.into(), json!({"shape": shape, "points": points, "bulges": applied}));
         }
         None => {
+            if !bulges_equiv(view.get("bulges"), applied.as_ref()) {
+                rest.insert(SHAPE_BULGES.into(), json!({"orig": view.get("bulges"), "applied": applied}));
+            }
             let shape = shape_value.as_object().cloned().unwrap_or_default();
             let (_, shape_rest) = split_object(&shape, &["type", "points", "bulges"]);
             if !shape_rest.is_empty() {
@@ -1771,6 +1888,12 @@ fn to_sketchy_inner(model: &Value, document_id: Option<&str>) -> Result<Document
     if file_name.is_some() {
         residual.remove("fileName");
     }
+    // A save timestamp is not content: dropping it keeps an unchanged sketch's hash stable.
+    residual.remove("savedAt");
+    // The canvas theme is an interface preference, so it is not part of the hashed content.
+    if let Some(Value::Object(settings)) = residual.get_mut("settings") {
+        settings.remove("canvasTheme");
+    }
     let mut other = match residual.remove(SKETCHY_OTHER) {
         Some(Value::Object(m)) => m,
         _ => Map::new(),
@@ -1871,6 +1994,9 @@ fn to_sketchy_inner(model: &Value, document_id: Option<&str>) -> Result<Document
         doc.insert("classification_schemes".into(), Value::Array(splice_at(others, Some(&at), vec![Value::Object(scheme)])));
     }
     other.remove(SCHEME_INDEX);
+    if other.get("$schema").and_then(Value::as_str) == Some(SCHEMA_URL_0_1) {
+        other.insert("$schema".into(), SCHEMA_URL.into());
+    }
     serde_json::from_value(Value::Object(merge_objects(doc, other))).map_err(|e| err(e.to_string()))
 }
 
@@ -1922,7 +2048,114 @@ fn check_unique_ids(doc: &Document) -> Result<(), SketchyError> {
     }
 }
 
+// --------------------------------------------------- 0.1 to 0.2
+
+/// `-n` for a number, keeping integers integers and zero as it is.
+fn negated(n: &Value) -> Value {
+    match (n.as_i64(), n.as_f64()) {
+        (Some(i), _) => i.checked_neg().map_or_else(|| Value::from(-(i as f64)), Value::from),
+        (None, Some(f)) if f != 0.0 => Value::from(-f),
+        _ => n.clone(),
+    }
+}
+
+/// Flips every `bulge` and `bulges` in `v` (walls, polygon and hole rings, polylines, shapes in
+/// definitions and annotations), leaving `extras` alone: it is not ours to rewrite.
+fn negate_bulges(v: &mut Value) {
+    match v {
+        Value::Object(m) => {
+            for (k, child) in m.iter_mut() {
+                match (k.as_str(), &mut *child) {
+                    ("extras", _) => {}
+                    ("bulge", n) if n.is_number() => *n = negated(n),
+                    ("bulges", Value::Array(a)) => a.iter_mut().for_each(|n| *n = negated(n)),
+                    _ => negate_bulges(child),
+                }
+            }
+        }
+        Value::Array(a) => a.iter_mut().for_each(negate_bulges),
+        _ => {}
+    }
+}
+
+/// Keeps what 0.2 dropped from a 0.1 element in its `extras[NS]` residual.
+fn stash_dropped(obj: &mut Map<String, Value>, key: &str, value: Value) {
+    let extras = obj.entry("extras").or_insert_with(|| json!({}));
+    if let Some(ns) = extras.as_object_mut().map(|e| e.entry(NS).or_insert_with(|| json!({}))) {
+        if let Some(dropped) = ns.as_object_mut().map(|n| n.entry(DROPPED_0_1).or_insert_with(|| json!({}))) {
+            dropped[key] = value;
+        }
+    }
+}
+
+/// 0.1 `ceiling_height` becomes 0.2 `ceiling.height`; `ceiling_sloped` has no 0.2 form without
+/// zone geometry and is stashed; a stair's removed `counted_on` is stashed too.
+fn upgrade_element(obj: &mut Map<String, Value>) {
+    match obj.remove("ceiling_height") {
+        Some(h) if h.is_number() => {
+            let ceiling = obj.entry("ceiling").or_insert_with(|| json!({}));
+            if let Some(c) = ceiling.as_object_mut() {
+                c.entry("height").or_insert(h);
+            }
+        }
+        Some(other) => stash_dropped(obj, "ceiling_height", other),
+        None => {}
+    }
+    for key in ["ceiling_sloped", "counted_on"] {
+        if let Some(v) = obj.remove(key) {
+            stash_dropped(obj, key, v);
+        }
+    }
+}
+
+/// Upgrades a draft 0.1 document to 0.2 (SPEC 0.2 section 14.1, "Migrating a 0.1 file"):
+/// negates every bulge, turns `ceiling_height` into `ceiling`, drops `counted_on` and
+/// `ceiling_sloped` (kept in the residual) and moves the schema URL.
+fn migrate_0_1(doc: &Document) -> Result<Document, SketchyError> {
+    let mut v = doc.to_value();
+    negate_bulges(&mut v);
+    if let Some(root) = v.as_object_mut() {
+        root.insert("format_version".into(), FORMAT_VERSION.into());
+        if root.get("$schema").and_then(Value::as_str) == Some(SCHEMA_URL_0_1) {
+            root.insert("$schema".into(), SCHEMA_URL.into());
+        }
+    }
+    let levels = v
+        .get_mut("structures")
+        .and_then(Value::as_array_mut)
+        .into_iter()
+        .flatten()
+        .filter_map(|s| s.get_mut("levels")?.as_array_mut())
+        .flatten();
+    for level in levels {
+        if let Some(l) = level.as_object_mut() {
+            upgrade_element(l);
+            for key in ["spaces", "features"] {
+                let items = l.get_mut(key).and_then(Value::as_array_mut).into_iter().flatten();
+                items.filter_map(Value::as_object_mut).for_each(upgrade_element);
+            }
+        }
+    }
+    Document::from_value(v)
+}
+
+/// Brings `doc` to the format this build writes ([`FORMAT_VERSION`]): a 0.1 document is
+/// migrated to 0.2 (bulges negated, `ceiling_height` turned into `ceiling`, dropped fields
+/// kept in the residual); a document already at 0.2 is returned unchanged.
+///
+/// Anything that copies an old stored revision forward (restore, save a copy) runs this
+/// first so the new revision is a 0.2 document.
+pub fn upgrade(doc: &Document) -> Result<Document, SketchyError> {
+    if doc.format_version == "0.1" {
+        migrate_0_1(doc)
+    } else {
+        Ok(doc.clone())
+    }
+}
+
 fn from_sketchy_inner(doc: &Document) -> Result<Value, SketchyError> {
+    let upgraded = upgrade(doc)?;
+    let doc = &upgraded;
     check_unique_ids(doc)?;
     if let Some(bad) = doc.extensions_required.iter().flatten().find(|e| *e != NS) {
         return Err(err(format!("requires unsupported extension {bad}")));
@@ -2155,6 +2388,8 @@ mod tests {
         vec![
             ("wall", "bulge", json!({}), json!({"bulge": 0.5}), true),
             ("wall", "bulge", json!({}), json!({"bulge": -0.25}), true),
+            // A sweep beyond the app's limit is clamped, so it is parked (SHAPE_BULGES for polygons).
+            ("wall", "bulge", json!({}), json!({"bulge": -1000.0}), false),
             ("wall", "thickness", json!({}), json!({"thickness": 0.5}), true),
             ("wall", "kind", json!({}), json!({"kind": "exterior"}), true),
             ("wall", "kind", json!({}), json!({"kind": "interior"}), true),
@@ -2173,6 +2408,7 @@ mod tests {
             ("polygon", "within", json!({}), json!({"within": "ghost", "subtract": true}), false),
             ("polygon", "attributes", json!({}), json!({"attributes": {"k": 1}}), true),
             ("polygon", "bulges", json!({"points": [{}, {}, {}]}), json!({"bulges": [0.5, 0, -0.25]}), true),
+            ("polygon", "bulges", json!({"points": [{}, {}, {}]}), json!({"bulges": [1000.0, 0, 0]}), false),
             ("polygon", "use", json!({}), json!({"use": "garage"}), false),
             ("label", "position", json!({}), json!({"position": [3, 4]}), true),
             ("label", "text", json!({}), json!({"text": "Hi"}), true),

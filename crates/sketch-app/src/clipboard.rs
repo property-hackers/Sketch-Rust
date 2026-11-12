@@ -93,6 +93,7 @@ pub fn paste(d: &mut Drawing, clip: &Clipboard) -> Selection {
         line_ids.insert(line.id, new_id);
         let mut copy = line.clone();
         copy.id = new_id;
+        copy.forget_sketchy_id();
         copy.start = Pt::new(line.start.x + OFFSET, line.start.y + OFFSET);
         copy.end = Pt::new(line.end.x + OFFSET, line.end.y + OFFSET);
         d.lines.push(copy);
@@ -106,6 +107,7 @@ pub fn paste(d: &mut Drawing, clip: &Clipboard) -> Selection {
     for poly in &clip.polygons {
         let mut copy = poly.clone();
         copy.id = poly_ids[&poly.id];
+        copy.forget_sketchy_id();
         copy.points = poly
             .points
             .iter()
@@ -139,6 +141,7 @@ pub fn paste(d: &mut Drawing, clip: &Clipboard) -> Selection {
     for text in &clip.texts {
         let mut copy = text.clone();
         copy.id = d.gen_id();
+        copy.forget_sketchy_id();
         copy.x += OFFSET;
         copy.y += OFFSET;
         out.texts.insert(copy.id);
@@ -147,6 +150,7 @@ pub fn paste(d: &mut Drawing, clip: &Clipboard) -> Selection {
     for symbol in &clip.symbols {
         let mut copy = symbol.clone();
         copy.id = d.gen_id();
+        copy.forget_sketchy_id();
         copy.x += OFFSET;
         copy.y += OFFSET;
         // A copied opening follows the copy of its wall when that was copied
@@ -292,6 +296,7 @@ mod tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         }
     }
 
@@ -353,6 +358,7 @@ mod tests {
                 label_italic: None,
                 label_underline: None,
                 label_color: None,
+                extra: Default::default(),
             }
         };
         d.polygons = vec![poly];
@@ -403,6 +409,33 @@ mod tests {
             assert!(pasted.lines.contains(&id), "edge {id} is a copied wall");
         }
         assert_eq!(d.lines.len(), 8, "no extra walls were invented");
+    }
+
+    #[test]
+    fn pasted_copies_do_not_reuse_sketchy_ids() {
+        let (mut d, poly_id) = square();
+        for line in &mut d.lines {
+            line.extra.insert("sketchy_id".into(), format!("wall-{}", line.id).into());
+            line.extra.insert("sketchy_display".into(), true.into());
+        }
+        d.polygons[0].extra.insert("sketchy_id".into(), "space-a".into());
+        d.polygons[0].extra.insert("sketchy_index".into(), 3.into());
+        let sel = Selection {
+            polys: [poly_id].into_iter().collect(),
+            ..Selection::default()
+        };
+        let clip = copy(&d, &sel).expect("clipboard");
+        let pasted = paste(&mut d, &clip);
+        let copies = d.lines.iter().filter(|l| pasted.lines.contains(&l.id));
+        for line in copies {
+            assert!(!line.extra.contains_key("sketchy_id"), "line {}", line.id);
+            assert!(line.extra.contains_key("sketchy_display"), "other residue stays");
+        }
+        let copy = d.polygons.iter().find(|p| p.id != poly_id).expect("copy");
+        assert!(!copy.extra.contains_key("sketchy_id"));
+        assert!(copy.extra.contains_key("sketchy_index"));
+        let original = d.polygons.iter().find(|p| p.id == poly_id).expect("original");
+        assert_eq!(original.extra["sketchy_id"], "space-a", "the original keeps its id");
     }
 
     #[test]

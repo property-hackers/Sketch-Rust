@@ -12,6 +12,9 @@ pub struct State {
     pub path: Option<PathBuf>,
     pub recovered: Option<PathBuf>,
     pub recovery: Option<(PathBuf, serde_json::Value)>,
+    /// The bound `.sketchy` store's path and document id, read once per path for the
+    /// snapshot's `recoverySource`.
+    pub source: Option<(PathBuf, String)>,
 }
 impl Default for State {
     fn default() -> Self {
@@ -21,6 +24,7 @@ impl Default for State {
             path: None,
             recovered: None,
             recovery: None,
+            source: None,
         }
     }
 }
@@ -148,7 +152,10 @@ impl App {
         }
     }
     pub(crate) fn autosave_tick(&mut self, force: bool) -> Task<Message> {
-        if !persist::enabled() || !self.drawing.options.auto_save_enabled {
+        if !persist::enabled()
+            || !self.drawing.options.auto_save_enabled
+            || self.viewing_revision.is_some()
+        {
             return Task::none();
         }
         let minutes = self.drawing.options.auto_save_interval;
@@ -179,7 +186,11 @@ impl App {
                     .as_nanos()
             ))
         });
-        let result = sketch_core::skx::write(&model, &Default::default())
+        let mut snapshot = model;
+        if let Some(source) = self.recovery_source() {
+            snapshot["recoverySource"] = source;
+        }
+        let result = sketch_core::skx::write(&snapshot, &Default::default())
             .map_err(|e| e.to_string())
             .and_then(|bytes| atomic_write(&path, &bytes).map_err(|e| e.to_string()));
         match result {
@@ -190,6 +201,37 @@ impl App {
             }
             Err(e) => self.toasts.show(format!("Autosave failed: {e}")),
         }
+    }
+    /// Where the open document's `.sketchy` store is, for the recovery snapshot:
+    /// `{path, documentId}`, so recovery can bind the document back to it.
+    fn recovery_source(&mut self) -> Option<serde_json::Value> {
+        let file = self
+            .current_file
+            .as_ref()
+            .filter(|f| f.format == crate::SketchFileFormat::Sketchy)?;
+        if self.autosave.source.as_ref().map(|(path, _)| path) != Some(&file.path) {
+            let store = sketch_core::sketchy::store::Store::open(&file.path).ok()?;
+            self.autosave.source = Some((file.path.clone(), store.document_id().to_string()));
+        }
+        let (path, id) = self.autosave.source.as_ref()?;
+        Some(serde_json::json!({ "path": path.to_string_lossy(), "documentId": id }))
+    }
+    /// Binds a recovered document back to the store its snapshot came from, when that
+    /// store is still there and still the same document. Then Save appends to it.
+    fn rebind_recovered_source(&mut self, source: &serde_json::Value) -> Option<()> {
+        let path = PathBuf::from(source.get("path")?.as_str()?);
+        let store = sketch_core::sketchy::store::Store::open(&path).ok()?;
+        if store.document_id() != source.get("documentId")?.as_str()? {
+            return None;
+        }
+        self.current_file = Some(crate::CurrentFile {
+            path,
+            format: crate::SketchFileFormat::Sketchy,
+            read_only: store.is_read_only(),
+            confirmed_legacy: false,
+        });
+        self.refresh_versions();
+        Some(())
     }
     pub(crate) fn autosave_clean(&mut self) {
         if let Some(path) = self.autosave.path.take() {
@@ -211,8 +253,12 @@ impl App {
     pub(crate) fn recover_autosave(&mut self, accept: bool) -> Task<Message> {
         self.autosave_prompt = false;
         if accept {
-            if let Some((path, model)) = self.autosave.recovery.clone() {
+            if let Some((path, mut model)) = self.autosave.recovery.clone() {
+                let source = model.as_object_mut().and_then(|m| m.remove("recoverySource"));
                 let task = self.apply_model(&model, "Recovered sketch");
+                if let Some(source) = source {
+                    let _ = self.rebind_recovered_source(&source);
+                }
                 self.autosave.recovered = Some(path);
                 self.autosave_baseline();
                 // Recovered work exists only in the recovery file until it

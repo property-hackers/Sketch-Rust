@@ -43,7 +43,7 @@ pub const TOPICS: &[Topic] = &[
             Para("Sketch draws floor plans to scale and calculates their areas. A sketch is made of walls, the areas they enclose, and symbols and text placed on top."),
             Heading("The window"),
             Points(&[
-                "Title bar: Save, Undo, Redo and the command search, with a pill that reads Unsaved or Saved. The caret opens New, Open, Save As and Options.",
+                "Title bar: Save, Undo, Redo and the command search, with a pill that tells you where the file stands (Unsaved, Saved or Final, with the version number). The caret opens New, Open, Save As and Options.",
                 "Tabs: File opens the file menu. Home, View, Tools, Reference Image and Help each show a ribbon of commands. Edit Tools appears while something is selected.",
                 "Left rail: the tools - Select, drawing walls, Measure and the rest. Hover a tool to see its name.",
                 "Right dock: panels for defining areas, calculations, symbols, text and layers.",
@@ -153,9 +153,19 @@ pub const TOPICS: &[Topic] = &[
         blocks: &[
             Points(&[
                 "Ctrl + S saves to the current file. The first save asks where to put it; Save As (F12) saves a copy under a new name and carries on in that copy.",
-                "The pill in the title bar reads Unsaved while there are changes that are not in the file. Closing with unsaved changes asks whether to save them.",
+                "Sketches are saved as .sketchy files. A .sketchy file keeps every save as a version, so earlier states of the sketch are never lost (see Version history below).",
+                "The pill in the title bar reads Unsaved while there are changes that are not in the file, and Saved when there are none. A .sketchy file adds its version number: Saved · v3. Marked as final it reads Final · v3, a file opened read-only reads Read-only · v3, and an old version on screen reads Viewing v1. Closing with unsaved changes asks whether to save them.",
                 "File > Recent Files reopens a sketch you worked on lately.",
                 "Drop a sketch file on the window to open it. Each window holds one sketch; opening a sketch that is already open brings its window forward.",
+            ]),
+            Heading("Version history"),
+            Points(&[
+                "File > Version History shows a panel listing every version of the sketch, newest first, with its date and note.",
+                "Open shows an old version read-only, under a banner. Nothing can be edited there; Back to latest returns to the current sketch.",
+                "Restore this version (on the banner) brings the old version back as a new latest version. Nothing is deleted, so you can go back again.",
+                "Save a copy writes any version out as a separate .sketchy file and leaves the original alone.",
+                "Mark as Final records the current sketch as a signed-off version with an optional note. A final version is never changed; saving more work adds a new version after it.",
+                "Saving without making changes adds no new version.",
             ]),
             Heading("Autosave"),
             Para("While you work, Sketch keeps a recovery copy of the open sketch. If Sketch closes unexpectedly, the next start offers to restore it; File > Recover Autosave does the same at any time. Autosave is switched on, and its interval set, in Options."),
@@ -427,6 +437,23 @@ mod tests {
                     }
                 }
             }
+        }
+    }
+
+    #[test]
+    fn saving_topic_describes_sketchy_versions() {
+        let topic = TOPICS.iter().find(|t| t.title == "Saving and recovery").expect("topic");
+        let text: String = topic
+            .blocks
+            .iter()
+            .flat_map(|b| match b {
+                Heading(s) | Para(s) | Note(s) => vec![*s],
+                Steps(items) | Points(items) => items.to_vec(),
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        for needle in [".sketchy", "Version History", "read-only", "Restore this version", "Save a copy", "Mark as Final", "Final · v3", "Read-only · v3"] {
+            assert!(text.contains(needle), "guide lacks {needle:?}");
         }
     }
 

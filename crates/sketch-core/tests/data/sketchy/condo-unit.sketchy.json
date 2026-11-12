@@ -1,7 +1,7 @@
 {
   "format": "sketchy",
-  "format_version": "0.1",
-  "$schema": "https://property-hackers.github.io/sketchy/schema/0.1/sketchy.schema.json",
+  "format_version": "0.2",
+  "$schema": "https://property-hackers.github.io/sketchy/schema/0.2/sketchy.schema.json",
   "id": "0193a2d4-1c5e-7f30-a1b2-c3d4e5f60718",
   "revision": {
     "id": "0193a2d4-2d6f-7041-b2c3-d4e5f6071829",
@@ -17,7 +17,7 @@
     },
     "message": "Unit 7C measured",
     "status": "draft",
-    "content_hash": "sha256:09e69ba72a6d583ab04379634ab88250059dae5fdd1ebf68b00517c511861a54"
+    "content_hash": "sha256:7e7e5756727e6c8e2ca185352415e1e0ac0f98df87feb4b554a5f7c190250273"
   },
   "derived_from": {
     "document": "0193a000-0000-7000-8000-00000000c7c0",
@@ -57,7 +57,9 @@
           "name": "Level 7",
           "grade": "above",
           "sequence": 7,
-          "ceiling_height": 2.7,
+          "ceiling": {
+            "height": 2.7
+          },
           "spaces": [
             {
               "id": "unit-7c",
@@ -67,7 +69,8 @@
               "unit": "u7c",
               "shape": {
                 "type": "polygon",
-                "points": [[0, 0], [10, 0], [10, 9], [0, 9]]
+                "points": [[0, 0], [12, 0], [12, 8], [0, 8]],
+                "edge_measured_to": [null, null, "centerline", "centerline"]
               },
               "source": {
                 "method": "scanned",
@@ -78,7 +81,7 @@
             },
             {
               "id": "living",
-              "name": "Living and kitchen",
+              "name": "Living room",
               "use": "living_room",
               "finished": true,
               "within": "unit-7c",
@@ -86,20 +89,48 @@
               "measured_to": "centerline",
               "shape": {
                 "type": "polygon",
-                "points": [[0, 0], [6, 0], [6, 5], [0, 5]]
+                "points": [[0, 0], [5.5, 0], [5.5, 3.8], [0, 3.8]],
+                "edges": ["physical", "physical", "virtual", "physical"]
               }
             },
             {
-              "id": "bed1",
-              "name": "Bedroom 1",
-              "use": "bedroom",
+              "id": "kitchen",
+              "name": "Kitchen and dining",
+              "use": "kitchen",
               "finished": true,
               "within": "unit-7c",
               "unit": "u7c",
               "measured_to": "centerline",
               "shape": {
                 "type": "polygon",
-                "points": [[6, 0], [10, 0], [10, 5], [6, 5]]
+                "points": [[0, 3.8], [5.5, 3.8], [5.5, 6.5], [4, 6.5], [4, 8], [0, 8]],
+                "edges": ["virtual", "physical", "physical", "physical", "physical", "physical"]
+              }
+            },
+            {
+              "id": "laundry",
+              "name": "Laundry closet",
+              "use": "laundry",
+              "finished": true,
+              "within": "unit-7c",
+              "unit": "u7c",
+              "measured_to": "centerline",
+              "shape": {
+                "type": "polygon",
+                "points": [[4, 6.5], [5.5, 6.5], [5.5, 8], [4, 8]]
+              }
+            },
+            {
+              "id": "hall",
+              "name": "Entry and hall",
+              "use": "hall",
+              "finished": true,
+              "within": "unit-7c",
+              "unit": "u7c",
+              "measured_to": "centerline",
+              "shape": {
+                "type": "polygon",
+                "points": [[5.5, 3.8], [8.8, 3.8], [8.8, 5], [7, 5], [7, 8], [5.5, 8]]
               }
             },
             {
@@ -112,11 +143,11 @@
               "measured_to": "centerline",
               "shape": {
                 "type": "polygon",
-                "points": [[6, 5], [10, 5], [10, 9], [6, 9]]
+                "points": [[5.5, 0], [8.8, 0], [8.8, 3.8], [5.5, 3.8]]
               }
             },
             {
-              "id": "bath",
+              "id": "bath2",
               "name": "Bathroom",
               "use": "bathroom",
               "finished": true,
@@ -125,21 +156,65 @@
               "measured_to": "centerline",
               "shape": {
                 "type": "polygon",
-                "points": [[0, 5], [3, 5], [3, 9], [0, 9]]
+                "points": [[7, 5], [8.8, 5], [8.8, 8], [7, 8]]
               }
             },
             {
-              "id": "hall",
-              "name": "Hall",
-              "use": "hall",
+              "id": "primary",
+              "name": "Primary bedroom",
+              "use": "bedroom",
               "finished": true,
               "within": "unit-7c",
               "unit": "u7c",
               "measured_to": "centerline",
               "shape": {
                 "type": "polygon",
-                "points": [[3, 5], [6, 5], [6, 9], [3, 9]]
-              }
+                "points": [[8.8, 0], [12, 0], [12, 5], [8.8, 5]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.room-codes",
+                  "code": "PBR"
+                }
+              ]
+            },
+            {
+              "id": "ensuite",
+              "name": "Ensuite bathroom",
+              "use": "bathroom",
+              "finished": true,
+              "within": "unit-7c",
+              "unit": "u7c",
+              "measured_to": "centerline",
+              "shape": {
+                "type": "polygon",
+                "points": [[8.8, 5], [10.6, 5], [10.6, 8], [8.8, 8]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.room-codes",
+                  "code": "ENS"
+                }
+              ]
+            },
+            {
+              "id": "closet",
+              "name": "Walk-in closet",
+              "use": "closet",
+              "finished": true,
+              "within": "unit-7c",
+              "unit": "u7c",
+              "measured_to": "centerline",
+              "shape": {
+                "type": "polygon",
+                "points": [[10.6, 5], [12, 5], [12, 8], [10.6, 8]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.room-codes",
+                  "code": "WIC"
+                }
+              ]
             },
             {
               "id": "balcony",
@@ -149,8 +224,8 @@
               "unit": "u7c",
               "shape": {
                 "type": "polygon",
-                "points": [[0, 0], [6, 0], [6, -2], [0, -2]],
-                "bulges": [0, 0, 0.2, 0]
+                "points": [[0, 0], [5.5, 0], [5.5, -1.8], [0, -1.8]],
+                "bulges": [0, 0, -0.2, 0]
               }
             }
           ],
@@ -158,8 +233,8 @@
             {
               "id": "w-south",
               "start": [0, 0],
-              "end": [10, 0],
-              "thickness": 0.25,
+              "end": [12, 0],
+              "thickness": 0.3,
               "kind": "exterior",
               "alignment": "center",
               "bounds": [
@@ -171,9 +246,9 @@
             },
             {
               "id": "w-east",
-              "start": [10, 0],
-              "end": [10, 9],
-              "thickness": 0.25,
+              "start": [12, 0],
+              "end": [12, 8],
+              "thickness": 0.3,
               "kind": "exterior",
               "alignment": "center",
               "bounds": [
@@ -185,9 +260,9 @@
             },
             {
               "id": "w-north",
-              "start": [10, 9],
-              "end": [0, 9],
-              "thickness": 0.2,
+              "start": [12, 8],
+              "end": [0, 8],
+              "thickness": 0.25,
               "kind": "party",
               "alignment": "center",
               "bounds": [
@@ -199,9 +274,9 @@
             },
             {
               "id": "w-west",
-              "start": [0, 9],
+              "start": [0, 8],
               "end": [0, 0],
-              "thickness": 0.2,
+              "thickness": 0.25,
               "kind": "party",
               "alignment": "center",
               "bounds": [
@@ -212,41 +287,125 @@
               ]
             },
             {
-              "id": "w-x6",
-              "start": [6, 0],
-              "end": [6, 9],
+              "id": "w-x55a",
+              "start": [5.5, 0],
+              "end": [5.5, 3.8],
               "thickness": 0.1,
               "kind": "interior",
               "alignment": "center"
             },
             {
-              "id": "w-y5",
-              "start": [0, 5],
-              "end": [10, 5],
+              "id": "w-x55b",
+              "start": [5.5, 3.8],
+              "end": [5.5, 8],
               "thickness": 0.1,
               "kind": "interior",
               "alignment": "center"
             },
             {
-              "id": "w-x3",
-              "start": [3, 5],
-              "end": [3, 9],
+              "id": "w-y38",
+              "start": [5.5, 3.8],
+              "end": [8.8, 3.8],
               "thickness": 0.1,
               "kind": "interior",
               "alignment": "center"
+            },
+            {
+              "id": "w-x88",
+              "start": [8.8, 0],
+              "end": [8.8, 8],
+              "thickness": 0.15,
+              "kind": "interior",
+              "alignment": "center"
+            },
+            {
+              "id": "w-y5a",
+              "start": [7, 5],
+              "end": [8.8, 5],
+              "thickness": 0.1,
+              "kind": "interior",
+              "alignment": "center"
+            },
+            {
+              "id": "w-x7",
+              "start": [7, 5],
+              "end": [7, 8],
+              "thickness": 0.1,
+              "kind": "interior",
+              "alignment": "center"
+            },
+            {
+              "id": "w-y5b",
+              "start": [8.8, 5],
+              "end": [12, 5],
+              "thickness": 0.1,
+              "kind": "interior",
+              "alignment": "center"
+            },
+            {
+              "id": "w-x106",
+              "start": [10.6, 5],
+              "end": [10.6, 8],
+              "thickness": 0.1,
+              "kind": "interior",
+              "alignment": "center"
+            },
+            {
+              "id": "w-y65",
+              "start": [4, 6.5],
+              "end": [5.5, 6.5],
+              "thickness": 0.1,
+              "kind": "interior",
+              "alignment": "center"
+            },
+            {
+              "id": "w-x4",
+              "start": [4, 6.5],
+              "end": [4, 8],
+              "thickness": 0.1,
+              "kind": "interior",
+              "alignment": "center"
+            },
+            {
+              "id": "w-rail-e",
+              "start": [5.5, 0],
+              "end": [5.5, -1.8],
+              "thickness": 0.1,
+              "kind": "railing",
+              "alignment": "center",
+              "bounds": [
+                {
+                  "space": "balcony",
+                  "edge": 1
+                }
+              ]
             },
             {
               "id": "w-rail",
-              "start": [6, -2],
-              "end": [0, -2],
-              "bulge": 0.2,
+              "start": [5.5, -1.8],
+              "end": [0, -1.8],
+              "bulge": -0.2,
               "thickness": 0.1,
-              "kind": "half_wall",
+              "kind": "railing",
               "alignment": "center",
               "bounds": [
                 {
                   "space": "balcony",
                   "edge": 2
+                }
+              ]
+            },
+            {
+              "id": "w-rail-w",
+              "start": [0, -1.8],
+              "end": [0, 0],
+              "thickness": 0.1,
+              "kind": "railing",
+              "alignment": "center",
+              "bounds": [
+                {
+                  "space": "balcony",
+                  "edge": 3
                 }
               ]
             }
@@ -256,106 +415,231 @@
               "id": "d-entry",
               "kind": "door",
               "wall": "w-north",
-              "offset": 4.1,
-              "width": 0.9,
-              "swing": "in_right"
+              "offset": 5.3,
+              "width": 0.95,
+              "swing": "in_left",
+              "swing_into": "hall"
             },
             {
               "id": "d-balcony",
               "kind": "sliding_door",
               "wall": "w-south",
-              "offset": 1.5,
+              "offset": 1.2,
               "width": 2.4
             },
             {
-              "id": "win-bed1",
+              "id": "win-living",
               "kind": "window",
-              "wall": "w-east",
-              "offset": 1.5,
-              "width": 1.8,
+              "wall": "w-south",
+              "offset": 4,
+              "width": 1.2,
               "height": 1.5,
               "sill_height": 0.9
             },
             {
               "id": "win-bed2",
               "kind": "window",
-              "wall": "w-east",
-              "offset": 6,
-              "width": 1.5,
-              "height": 1.5,
+              "wall": "w-south",
+              "offset": 6.4,
+              "width": 1.6,
+              "height": 1.4,
               "sill_height": 0.9
             },
             {
-              "id": "d-bed1",
-              "kind": "door",
-              "wall": "w-x6",
-              "offset": 3.6,
-              "width": 0.8,
-              "swing": "in_left"
+              "id": "win-primary-s",
+              "kind": "window",
+              "wall": "w-south",
+              "offset": 9.6,
+              "width": 1.8,
+              "height": 1.4,
+              "sill_height": 0.9
+            },
+            {
+              "id": "win-primary-e",
+              "kind": "window",
+              "wall": "w-east",
+              "offset": 1.6,
+              "width": 1.6,
+              "height": 1.4,
+              "sill_height": 0.9
             },
             {
               "id": "d-bed2",
               "kind": "door",
-              "wall": "w-x6",
-              "offset": 6.6,
+              "wall": "w-y38",
+              "offset": 0.6,
               "width": 0.8,
-              "swing": "in_right"
+              "swing": "in_right",
+              "swing_into": "bed2"
             },
             {
-              "id": "d-bath",
+              "id": "d-primary",
               "kind": "door",
-              "wall": "w-x3",
-              "offset": 1.6,
-              "width": 0.8,
-              "swing": "in_left"
+              "wall": "w-x88",
+              "offset": 3.95,
+              "width": 0.9,
+              "swing": "in_right",
+              "swing_into": "primary"
             },
             {
-              "id": "o-hall",
+              "id": "d-bath2",
+              "kind": "door",
+              "wall": "w-y5a",
+              "offset": 0.5,
+              "width": 0.8,
+              "swing": "in_left",
+              "swing_into": "bath2"
+            },
+            {
+              "id": "d-ensuite",
+              "kind": "pocket_door",
+              "wall": "w-y5b",
+              "offset": 0.4,
+              "width": 0.8
+            },
+            {
+              "id": "d-closet",
+              "kind": "bifold_door",
+              "wall": "w-y5b",
+              "offset": 2.1,
+              "width": 0.7
+            },
+            {
+              "id": "d-laundry",
+              "kind": "bifold_door",
+              "wall": "w-x55b",
+              "offset": 3.1,
+              "width": 0.8
+            },
+            {
+              "id": "o-kitchen",
               "kind": "cased_opening",
-              "wall": "w-y5",
-              "offset": 3.6,
-              "width": 1.6
+              "wall": "w-x55b",
+              "offset": 1.4,
+              "width": 1.2
             }
           ],
           "features": [
             {
-              "id": "island",
-              "kind": "island",
-              "position": [3, 3.6],
-              "width": 2,
-              "length": 0.9
+              "id": "sink-k",
+              "kind": "sink",
+              "position": [0.8, 7.55],
+              "width": 0.9,
+              "length": 0.6
+            },
+            {
+              "id": "dishwasher",
+              "kind": "dishwasher",
+              "position": [1.65, 7.55],
+              "width": 0.6,
+              "length": 0.6
             },
             {
               "id": "range",
               "kind": "range",
-              "position": [0.4, 3.6],
-              "rotation": 90,
+              "position": [2.6, 7.55],
               "width": 0.76,
               "length": 0.65
             },
             {
-              "id": "tub",
-              "kind": "tub",
-              "position": [0.4, 7],
-              "rotation": 90,
-              "width": 1.7,
+              "id": "fridge",
+              "kind": "refrigerator",
+              "position": [3.45, 7.5],
+              "width": 0.9,
               "length": 0.75
             },
             {
-              "id": "toilet",
+              "id": "island",
+              "kind": "island",
+              "position": [2.6, 5.2],
+              "width": 2.2,
+              "length": 0.9
+            },
+            {
+              "id": "washer",
+              "kind": "washer",
+              "position": [4.4, 7.4],
+              "width": 0.7,
+              "length": 0.7
+            },
+            {
+              "id": "dryer",
+              "kind": "dryer",
+              "position": [5.1, 7.4],
+              "width": 0.7,
+              "length": 0.7
+            },
+            {
+              "id": "tub-2",
+              "kind": "tub",
+              "position": [7.95, 7.45],
+              "width": 1.5,
+              "length": 0.75
+            },
+            {
+              "id": "toilet-2",
               "kind": "toilet",
-              "position": [2.5, 8.6],
+              "position": [8.45, 6.3],
               "width": 0.4,
               "length": 0.7
             },
             {
-              "id": "vanity",
+              "id": "vanity-2",
               "kind": "sink",
-              "position": [1.5, 5.4],
+              "position": [7.45, 6.3],
+              "rotation": 90,
+              "width": 0.9,
+              "length": 0.5
+            },
+            {
+              "id": "shower-e",
+              "kind": "shower",
+              "position": [9.3, 7.4],
+              "width": 0.9,
+              "length": 0.9
+            },
+            {
+              "id": "toilet-e",
+              "kind": "toilet",
+              "position": [10.2, 7.45],
+              "width": 0.4,
+              "length": 0.7
+            },
+            {
+              "id": "vanity-e",
+              "kind": "sink",
+              "position": [10.3, 6.2],
+              "rotation": 90,
               "width": 0.9,
               "length": 0.5
             }
           ]
+        }
+      ]
+    }
+  ],
+  "classification_schemes": [
+    {
+      "scheme": "org.example.room-codes",
+      "name": "Example room types",
+      "codes": [
+        {
+          "code": "PBR",
+          "label": "Primary bedroom",
+          "use": "bedroom",
+          "finished": true
+        },
+        {
+          "code": "ENS",
+          "label": "Ensuite bathroom",
+          "use": "bathroom",
+          "finished": true
+        },
+        {
+          "code": "WIC",
+          "label": "Walk-in closet",
+          "use": "closet",
+          "finished": true
         }
       ]
     }
@@ -370,10 +654,14 @@
     },
     "element_styles": {
       "living": "room",
-      "bed1": "room",
+      "kitchen": "room",
+      "laundry": "room",
+      "hall": "room",
       "bed2": "room",
-      "bath": "room",
-      "hall": "room"
+      "bath2": "room",
+      "primary": "room",
+      "ensuite": "room",
+      "closet": "room"
     },
     "pages": [
       {
@@ -399,24 +687,17 @@
         "fields": ["name", "area"]
       },
       {
-        "id": "lbl-bed1",
+        "id": "lbl-kitchen",
         "kind": "label",
         "level": "f7",
-        "target": "bed1",
+        "target": "kitchen",
         "fields": ["name", "area"]
       },
       {
-        "id": "lbl-bed2",
+        "id": "lbl-laundry",
         "kind": "label",
         "level": "f7",
-        "target": "bed2",
-        "fields": ["name", "area"]
-      },
-      {
-        "id": "lbl-bath",
-        "kind": "label",
-        "level": "f7",
-        "target": "bath",
+        "target": "laundry",
         "fields": ["name", "area"]
       },
       {
@@ -427,15 +708,74 @@
         "fields": ["name", "area"]
       },
       {
+        "id": "lbl-bed2",
+        "kind": "label",
+        "level": "f7",
+        "target": "bed2",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-bath2",
+        "kind": "label",
+        "level": "f7",
+        "target": "bath2",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-primary",
+        "kind": "label",
+        "level": "f7",
+        "target": "primary",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-ensuite",
+        "kind": "label",
+        "level": "f7",
+        "target": "ensuite",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-closet",
+        "kind": "label",
+        "level": "f7",
+        "target": "closet",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-balcony",
+        "kind": "label",
+        "level": "f7",
+        "target": "balcony",
+        "fields": ["name", "area"]
+      },
+      {
         "id": "dim-south",
         "kind": "dimension",
         "level": "f7",
-        "points": [[0, 0], [6, 0], [10, 0]],
-        "offset": -3,
+        "points": [[0, 0], [5.5, 0], [8.8, 0], [12, 0]],
+        "offset": -2.6,
         "show_total": true,
         "target": {
           "wall": "w-south"
         }
+      },
+      {
+        "id": "dim-west",
+        "kind": "dimension",
+        "level": "f7",
+        "points": [[0, 8], [0, 3.8], [0, 0]],
+        "offset": -1,
+        "show_total": true,
+        "target": {
+          "wall": "w-west"
+        }
+      },
+      {
+        "id": "north",
+        "kind": "north_arrow",
+        "position": [13.5, -1.5],
+        "rotation": 0
       }
     ]
   },
@@ -454,49 +794,77 @@
             "unit": "u7c"
           },
           "measure": "interior_area",
-          "value": 90
+          "value": 96
         },
         {
           "scope": {
             "space": "balcony"
           },
           "measure": "balcony",
-          "value": 14.4
+          "value": 11.9
         },
         {
           "scope": {
             "space": "living"
           },
           "measure": "room_area",
-          "value": 30
+          "value": 20.9
         },
         {
           "scope": {
-            "space": "bed1"
+            "space": "kitchen"
           },
           "measure": "room_area",
-          "value": 20
+          "value": 20.9
         },
         {
           "scope": {
-            "space": "bed2"
+            "space": "laundry"
           },
           "measure": "room_area",
-          "value": 16
-        },
-        {
-          "scope": {
-            "space": "bath"
-          },
-          "measure": "room_area",
-          "value": 12
+          "value": 2.2
         },
         {
           "scope": {
             "space": "hall"
           },
           "measure": "room_area",
-          "value": 12
+          "value": 8.5
+        },
+        {
+          "scope": {
+            "space": "bed2"
+          },
+          "measure": "room_area",
+          "value": 12.5
+        },
+        {
+          "scope": {
+            "space": "bath2"
+          },
+          "measure": "room_area",
+          "value": 5.4
+        },
+        {
+          "scope": {
+            "space": "primary"
+          },
+          "measure": "room_area",
+          "value": 16
+        },
+        {
+          "scope": {
+            "space": "ensuite"
+          },
+          "measure": "room_area",
+          "value": 5.4
+        },
+        {
+          "scope": {
+            "space": "closet"
+          },
+          "measure": "room_area",
+          "value": 4.2
         }
       ]
     }

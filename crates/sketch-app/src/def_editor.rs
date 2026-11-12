@@ -556,6 +556,7 @@ mod tests {
             label_italic: None,
             label_underline: None,
             label_color: None,
+            extra: Default::default(),
         }
     }
     fn sample_line() -> SketchLine {
@@ -574,6 +575,7 @@ mod tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         }
     }
     #[test]

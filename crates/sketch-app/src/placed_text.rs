@@ -30,6 +30,17 @@ pub struct PlacedText {
     // layer id the original stores (and `apply_model` maps back).
     #[serde(default)]
     pub layer_id: i64,
+    /// Keys this build does not model (Sketchy residue such as `sketchy_id`
+    /// or `sketchy_other`), kept so a save writes them back unchanged.
+    #[serde(flatten)]
+    pub extra: serde_json::Map<String, serde_json::Value>,
+}
+
+impl PlacedText {
+    /// Forget the Sketchy id: a copy of this label is a new element.
+    pub fn forget_sketchy_id(&mut self) {
+        self.extra.remove(sketch_core::model::SKETCHY_ID_KEY);
+    }
 }
 
 fn default_font_family() -> String {
@@ -63,6 +74,7 @@ impl PlacedText {
             underline: false,
             color: "#000000".into(),
             layer_id: 0,
+            extra: Default::default(),
         }
     }
 }
@@ -112,6 +124,7 @@ pub fn place_text_at(drawing: &mut crate::drawing::Drawing, world: Pt, text: Str
             o.text_color.clone()
         },
         layer_id: 0,
+        extra: Default::default(),
     };
     // store in drawing.texts if field exists; for now push to a vec on drawing
     drawing.texts.push(placed);

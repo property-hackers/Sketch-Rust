@@ -165,6 +165,7 @@ fn own_boundary_line(d: &mut Drawing, poly_index: usize, index: usize) {
         line_style: None,
         dimension_position: None,
         dimension_anchor: None,
+        extra: Default::default(),
     });
     line.id = id;
     line.start = start;
@@ -259,6 +260,7 @@ pub fn materialize(d: &mut Drawing, face: &EnclosedFace) -> i64 {
         label_italic: None,
         label_underline: None,
         label_color: None,
+        extra: Default::default(),
     };
     // A face always names the wall under each side; pad a short list.
     poly.edges
