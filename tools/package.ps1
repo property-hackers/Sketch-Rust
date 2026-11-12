@@ -4,6 +4,9 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 Push-Location $repoRoot
 try {
     if (-not $SkipBuild) {
+        # A release must include the Apex compatibility component. For an
+        # Apex-less dev package, set $env:SKETCH_REQUIRE_APEX = '0' first.
+        if (-not $env:SKETCH_REQUIRE_APEX) { $env:SKETCH_REQUIRE_APEX = '1' }
         cargo build --release -p sketch-app --offline
         if ($LASTEXITCODE -ne 0) { throw 'Release build failed.' }
     }

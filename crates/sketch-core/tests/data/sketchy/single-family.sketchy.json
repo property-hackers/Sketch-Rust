@@ -1,0 +1,932 @@
+{
+  "format": "sketchy",
+  "format_version": "0.2",
+  "$schema": "https://property-hackers.github.io/sketchy/schema/0.2/sketchy.schema.json",
+  "id": "0193a1c0-4a2e-7b10-8c3d-1e2f3a4b5c60",
+  "revision": {
+    "id": "0193a5f8-2b9c-7d11-8e40-5a6b7c8d9e0f",
+    "parents": ["0193a1c0-5b3f-7c21-9d4e-2f3a4b5c6d70"],
+    "sequence": 2,
+    "created_at": "2026-11-12T15:30:00Z",
+    "author": {
+      "name": "Sam Example"
+    },
+    "generator": {
+      "name": "Example Sketcher",
+      "version": "1.0.0"
+    },
+    "message": "Added rear deck, sunroom and pool after second site visit",
+    "status": "final",
+    "content_hash": "sha256:66fba1ec547305526d3ea9ef61d3c5aef341d085266c7b5f27d6d12510b490aa"
+  },
+  "history": [
+    {
+      "id": "0193a1c0-5b3f-7c21-9d4e-2f3a4b5c6d70",
+      "parents": [],
+      "sequence": 1,
+      "created_at": "2026-11-10T18:02:11Z",
+      "author": {
+        "name": "Sam Example"
+      },
+      "message": "Field sketch",
+      "status": "draft"
+    }
+  ],
+  "title": "100 Example Lane",
+  "generator": {
+    "name": "Example Sketcher",
+    "version": "1.0.0"
+  },
+  "length_unit": "ft",
+  "measured_to": "exterior_face",
+  "property": {
+    "address": "100 Example Lane, Sampletown",
+    "identifiers": [
+      {
+        "scheme": "parcel",
+        "value": "00-000-001"
+      }
+    ]
+  },
+  "site": {
+    "spaces": [
+      {
+        "id": "pool",
+        "name": "Pool",
+        "use": "pool",
+        "shape": {
+          "type": "ellipse",
+          "center": [34, 52],
+          "radius_x": 9,
+          "radius_y": 5,
+          "rotation": 0
+        }
+      },
+      {
+        "id": "driveway",
+        "name": "Driveway",
+        "use": "parking",
+        "enclosure": "open",
+        "shape": {
+          "type": "polygon",
+          "points": [[44, -26], [68, -26], [68, 2], [44, 2]]
+        },
+        "attributes": {
+          "Surface": "Concrete"
+        }
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "main",
+      "name": "Main house",
+      "kind": "dwelling"
+    },
+    {
+      "id": "adu",
+      "name": "Garden cottage",
+      "kind": "dwelling",
+      "accessory": true
+    }
+  ],
+  "structures": [
+    {
+      "id": "house",
+      "name": "Main house",
+      "kind": "dwelling",
+      "levels": [
+        {
+          "id": "l1",
+          "name": "First floor",
+          "grade": "above",
+          "sequence": 1,
+          "ceiling": {
+            "height": 9
+          },
+          "spaces": [
+            {
+              "id": "l1-living",
+              "name": "First floor",
+              "use": "living",
+              "finished": true,
+              "unit": "main",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [2, 0], [3, -2], [9, -2], [10, 0], [44, 0], [44, 28], [24, 28], [24, 40], [0, 40]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.area-codes",
+                  "code": "LIV1"
+                }
+              ],
+              "source": {
+                "method": "measured",
+                "device": "laser distance meter",
+                "accuracy": 0.05,
+                "captured_at": "2026-11-10T17:40:00Z"
+              }
+            },
+            {
+              "id": "sunroom",
+              "name": "Sunroom",
+              "use": "living",
+              "enclosure": "enclosed",
+              "finished": true,
+              "unit": "main",
+              "shape": {
+                "type": "polygon",
+                "points": [[6, 40], [18, 40], [18, 44], [6, 44]],
+                "bulges": [0, 0, 0.5, 0]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.area-codes",
+                  "code": "SUN"
+                }
+              ]
+            },
+            {
+              "id": "garage",
+              "name": "Garage",
+              "use": "garage",
+              "finished": false,
+              "unit": "main",
+              "shape": {
+                "type": "polygon",
+                "points": [[44, 2], [68, 2], [68, 24], [44, 24]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.area-codes",
+                  "code": "GAR"
+                }
+              ]
+            },
+            {
+              "id": "porch",
+              "name": "Covered porch",
+              "use": "porch",
+              "enclosure": "covered",
+              "unit": "main",
+              "shape": {
+                "type": "polygon",
+                "points": [[14, -6], [30, -6], [30, 0], [14, 0]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.area-codes",
+                  "code": "POR"
+                }
+              ]
+            },
+            {
+              "id": "deck",
+              "name": "Rear deck",
+              "use": "deck",
+              "enclosure": "open",
+              "unit": "main",
+              "shape": {
+                "type": "polygon",
+                "points": [[24, 28], [44, 28], [44, 38], [24, 38]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.area-codes",
+                  "code": "DCK"
+                }
+              ],
+              "notes": [
+                {
+                  "text": "Composite decking, added 2024 per owner.",
+                  "author": "Sam Example",
+                  "created_at": "2026-11-12T15:10:00Z"
+                }
+              ]
+            }
+          ],
+          "openings": [
+            {
+              "id": "front-door",
+              "kind": "door",
+              "space": "l1-living",
+              "edge": 4,
+              "offset": 11,
+              "width": 3,
+              "swing": "in_left"
+            },
+            {
+              "id": "bay-window",
+              "kind": "bay_window",
+              "space": "l1-living",
+              "edge": 2,
+              "offset": 0,
+              "width": 6
+            },
+            {
+              "id": "garage-door",
+              "kind": "garage_door",
+              "space": "garage",
+              "edge": 0,
+              "offset": 4,
+              "width": 16
+            }
+          ],
+          "features": [
+            {
+              "id": "stair-up",
+              "kind": "stair",
+              "position": [29, 7],
+              "width": 6,
+              "length": 10,
+              "connects_to": "l2",
+              "well": "stair-well",
+              "finished": true,
+              "stair": {
+                "configuration": "u_shaped",
+                "direction": "up",
+                "risers": 16,
+                "landings": [
+                  {
+                    "shape": {
+                      "type": "polygon",
+                      "points": [[26, 9], [32, 9], [32, 12], [26, 12]]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "fireplace",
+              "kind": "fireplace",
+              "position": [34, 26.5],
+              "width": 5,
+              "length": 2
+            }
+          ]
+        },
+        {
+          "id": "l2",
+          "name": "Second floor",
+          "grade": "above",
+          "sequence": 2,
+          "ceiling": {
+            "height": 8
+          },
+          "spaces": [
+            {
+              "id": "l2-living",
+              "name": "Second floor",
+              "use": "living",
+              "finished": true,
+              "unit": "main",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [32, 0], [32, 28], [0, 28]]
+              },
+              "ceiling": {
+                "zones": [
+                  {
+                    "shape": {
+                      "type": "polygon",
+                      "points": [[0, 20], [32, 20], [32, 28], [0, 28]]
+                    },
+                    "slope": {
+                      "from": [0, 28],
+                      "to": [0, 20],
+                      "min": 5,
+                      "max": 8
+                    }
+                  }
+                ]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.area-codes",
+                  "code": "LIV2"
+                }
+              ]
+            }
+          ],
+          "voids": [
+            {
+              "id": "foyer-open",
+              "name": "Open to below",
+              "shape": {
+                "type": "polygon",
+                "points": [[16, 2], [26, 2], [26, 12], [16, 12]]
+              }
+            },
+            {
+              "id": "stair-well",
+              "name": "Stairwell",
+              "shape": {
+                "type": "polygon",
+                "points": [[26, 2], [32, 2], [32, 12], [26, 12]]
+              }
+            }
+          ]
+        },
+        {
+          "id": "b1",
+          "name": "Basement",
+          "grade": "below",
+          "sequence": 1,
+          "ceiling": {
+            "height": 7.5
+          },
+          "spaces": [
+            {
+              "id": "bsmt-finished",
+              "name": "Finished basement",
+              "use": "living",
+              "finished": true,
+              "unit": "main",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [20, 0], [20, 28], [0, 28]]
+              },
+              "attributes": {
+                "Flooring": "Carpet",
+                "Egress window": "Yes"
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.area-codes",
+                  "code": "BSF"
+                }
+              ]
+            },
+            {
+              "id": "bsmt-unfinished",
+              "name": "Unfinished basement",
+              "use": "storage",
+              "finished": false,
+              "unit": "main",
+              "shape": {
+                "type": "polygon",
+                "points": [[20, 0], [32, 0], [32, 28], [20, 28]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.area-codes",
+                  "code": "BSU"
+                }
+              ]
+            }
+          ],
+          "features": [
+            {
+              "id": "stair-down",
+              "kind": "stair",
+              "position": [22, 7],
+              "width": 3.5,
+              "length": 10,
+              "connects_to": "l1",
+              "stair": {
+                "configuration": "straight",
+                "direction": "up",
+                "risers": 14
+              }
+            },
+            {
+              "id": "water-heater",
+              "kind": "water_heater",
+              "position": [28, 24],
+              "width": 2,
+              "length": 2
+            },
+            {
+              "id": "furnace",
+              "kind": "furnace",
+              "position": [28, 19],
+              "width": 3,
+              "length": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cottage",
+      "name": "Garden cottage",
+      "kind": "accessory_dwelling",
+      "attachment": "detached",
+      "position": [74, 30],
+      "rotation": 0,
+      "levels": [
+        {
+          "id": "c1",
+          "name": "Cottage",
+          "grade": "above",
+          "sequence": 1,
+          "ceiling": {
+            "height": 8
+          },
+          "spaces": [
+            {
+              "id": "cottage-living",
+              "name": "Cottage",
+              "use": "living",
+              "finished": true,
+              "unit": "adu",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [18, 0], [18, 25], [0, 25]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.area-codes",
+                  "code": "ADU"
+                }
+              ]
+            },
+            {
+              "id": "cottage-stoop",
+              "name": "Covered stoop",
+              "use": "porch",
+              "enclosure": "covered",
+              "unit": "adu",
+              "shape": {
+                "type": "polygon",
+                "points": [[6, -4], [12, -4], [12, 0], [6, 0]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.area-codes",
+                  "code": "POR"
+                }
+              ]
+            }
+          ],
+          "openings": [
+            {
+              "id": "cottage-door",
+              "kind": "door",
+              "space": "cottage-living",
+              "edge": 0,
+              "offset": 7.5,
+              "width": 3,
+              "swing": "in_right"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "classification_schemes": [
+    {
+      "scheme": "org.example.area-codes",
+      "name": "Example area codes",
+      "codes": [
+        {
+          "code": "LIV1",
+          "label": "Living area, first floor",
+          "use": "living",
+          "finished": true,
+          "grade": "above"
+        },
+        {
+          "code": "LIV2",
+          "label": "Living area, second floor",
+          "use": "living",
+          "finished": true,
+          "grade": "above"
+        },
+        {
+          "code": "BSF",
+          "label": "Basement, finished",
+          "use": "living",
+          "finished": true,
+          "grade": "below"
+        },
+        {
+          "code": "BSU",
+          "label": "Basement, unfinished",
+          "use": "storage",
+          "finished": false,
+          "grade": "below"
+        },
+        {
+          "code": "SUN",
+          "label": "Enclosed sunroom",
+          "use": "living",
+          "finished": true
+        },
+        {
+          "code": "ADU",
+          "label": "Accessory dwelling unit",
+          "use": "living",
+          "finished": true
+        },
+        {
+          "code": "GAR",
+          "label": "Garage",
+          "use": "garage",
+          "finished": false
+        },
+        {
+          "code": "POR",
+          "label": "Porch",
+          "use": "porch"
+        },
+        {
+          "code": "DCK",
+          "label": "Deck",
+          "use": "deck"
+        }
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def-car",
+      "name": "Car",
+      "category": "Vehicles",
+      "insertion_point": [3, 7.5],
+      "elements": [
+        {
+          "kind": "shape",
+          "shape": {
+            "type": "polygon",
+            "points": [[0, 0], [6, 0], [6, 15], [0, 15]],
+            "bulges": [0, 0.15, 0, 0.15]
+          }
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "layers": [
+      {
+        "id": "lay-areas",
+        "name": "Areas",
+        "visible": true,
+        "locked": false
+      },
+      {
+        "id": "lay-notes",
+        "name": "Notes",
+        "visible": true,
+        "locked": false
+      },
+      {
+        "id": "lay-dims",
+        "name": "Dimensions",
+        "parent": "lay-notes",
+        "visible": true,
+        "locked": false
+      }
+    ],
+    "styles": {
+      "living": {
+        "stroke": "#1f2933",
+        "stroke_width": 0.15,
+        "fill": "#e8eef5"
+      },
+      "outdoor": {
+        "stroke": "#1f2933",
+        "stroke_width": 0.1,
+        "stroke_dash": [1, 0.5],
+        "fill_pattern": "hatch"
+      },
+      "note": {
+        "font_family": "sans-serif",
+        "font_size": 1.2,
+        "text_color": "#334155"
+      }
+    },
+    "element_styles": {
+      "l1-living": "living",
+      "sunroom": "living",
+      "l2-living": "living",
+      "garage": "living",
+      "porch": "outdoor",
+      "deck": "outdoor",
+      "cottage-living": "living",
+      "cottage-stoop": "outdoor",
+      "t-porch": "note",
+      "t-deck": "note",
+      "t-sunroom": "note",
+      "t-pool": "note",
+      "t-drive": "note",
+      "t-stoop": "note"
+    },
+    "element_layers": {
+      "l1-living": "lay-areas",
+      "l2-living": "lay-areas",
+      "dim-south": "lay-dims",
+      "dim-west": "lay-dims",
+      "dim-north": "lay-dims",
+      "dim-garage": "lay-dims",
+      "dim-l2-south": "lay-dims",
+      "dim-l2-east": "lay-dims",
+      "dim-b1-south": "lay-dims",
+      "dim-c1-south": "lay-dims",
+      "dim-c1-east": "lay-dims",
+      "t-porch": "lay-notes",
+      "t-deck": "lay-notes",
+      "t-sunroom": "lay-notes",
+      "t-pool": "lay-notes",
+      "t-drive": "lay-notes",
+      "t-stoop": "lay-notes"
+    },
+    "pages": [
+      {
+        "id": "p1",
+        "name": "Main house",
+        "size": "letter",
+        "orientation": "landscape",
+        "scale": 0.0104,
+        "views": [
+          {
+            "structure": "house",
+            "levels": ["l1", "l2"]
+          }
+        ]
+      },
+      {
+        "id": "p2",
+        "name": "Basement and cottage",
+        "size": "letter",
+        "orientation": "landscape",
+        "scale": 0.0104,
+        "views": [
+          {
+            "structure": "house",
+            "levels": ["b1"]
+          },
+          {
+            "structure": "cottage",
+            "levels": ["c1"],
+            "offset": [50, 0]
+          }
+        ]
+      }
+    ],
+    "annotations": [
+      {
+        "id": "lbl-l1",
+        "kind": "label",
+        "level": "l1",
+        "target": "l1-living",
+        "fields": ["name", "code", "area"],
+        "position": [10, 24]
+      },
+      {
+        "id": "lbl-garage",
+        "kind": "label",
+        "level": "l1",
+        "target": "garage",
+        "fields": ["name", "area"],
+        "position": [56, 19]
+      },
+      {
+        "id": "lbl-l2",
+        "kind": "label",
+        "level": "l2",
+        "target": "l2-living",
+        "fields": ["name", "code", "area"],
+        "position": [8, 20]
+      },
+      {
+        "id": "lbl-bsmt-f",
+        "kind": "label",
+        "level": "b1",
+        "target": "bsmt-finished",
+        "fields": ["name", "area"],
+        "position": [8, 14]
+      },
+      {
+        "id": "lbl-bsmt-u",
+        "kind": "label",
+        "level": "b1",
+        "target": "bsmt-unfinished",
+        "fields": ["name", "area"],
+        "position": [26, 14]
+      },
+      {
+        "id": "lbl-cottage",
+        "kind": "label",
+        "level": "c1",
+        "target": "cottage-living",
+        "fields": ["name", "area"],
+        "position": [9, 14]
+      },
+      {
+        "id": "dim-south",
+        "kind": "dimension",
+        "level": "l1",
+        "points": [[0, 0], [44, 0], [68, 0]],
+        "offset": -10,
+        "show_total": true
+      },
+      {
+        "id": "dim-west",
+        "kind": "dimension",
+        "level": "l1",
+        "points": [[0, 0], [0, 40]],
+        "offset": 6,
+        "show_total": true
+      },
+      {
+        "id": "dim-north",
+        "kind": "dimension",
+        "level": "l1",
+        "points": [[0, 40], [24, 40]],
+        "offset": 10,
+        "show_total": true
+      },
+      {
+        "id": "dim-garage",
+        "kind": "dimension",
+        "level": "l1",
+        "points": [[68, 2], [68, 24]],
+        "offset": -6,
+        "show_total": true
+      },
+      {
+        "id": "dim-l2-south",
+        "kind": "dimension",
+        "level": "l2",
+        "points": [[0, 0], [32, 0]],
+        "offset": -4,
+        "show_total": true
+      },
+      {
+        "id": "dim-l2-east",
+        "kind": "dimension",
+        "level": "l2",
+        "points": [[32, 0], [32, 28]],
+        "offset": -4,
+        "show_total": true
+      },
+      {
+        "id": "dim-b1-south",
+        "kind": "dimension",
+        "level": "b1",
+        "points": [[0, 0], [20, 0], [32, 0]],
+        "offset": -4,
+        "show_total": true
+      },
+      {
+        "id": "dim-c1-south",
+        "kind": "dimension",
+        "level": "c1",
+        "points": [[0, 0], [18, 0]],
+        "offset": -8,
+        "show_total": true
+      },
+      {
+        "id": "dim-c1-east",
+        "kind": "dimension",
+        "level": "c1",
+        "points": [[18, 0], [18, 25]],
+        "offset": -4,
+        "show_total": true
+      },
+      {
+        "id": "t-porch",
+        "kind": "text",
+        "level": "l1",
+        "position": [22, -3],
+        "text": "Covered porch",
+        "align": "center"
+      },
+      {
+        "id": "t-deck",
+        "kind": "text",
+        "level": "l1",
+        "position": [34, 33],
+        "text": "Rear deck",
+        "align": "center"
+      },
+      {
+        "id": "t-sunroom",
+        "kind": "text",
+        "level": "l1",
+        "position": [12, 41.5],
+        "text": "Sunroom",
+        "align": "center"
+      },
+      {
+        "id": "t-pool",
+        "kind": "text",
+        "position": [34, 52],
+        "text": "Pool",
+        "align": "center"
+      },
+      {
+        "id": "t-drive",
+        "kind": "text",
+        "position": [56, -14],
+        "text": "Driveway",
+        "align": "center"
+      },
+      {
+        "id": "t-stoop",
+        "kind": "text",
+        "level": "c1",
+        "position": [9, -2],
+        "text": "Stoop",
+        "align": "center"
+      },
+      {
+        "id": "car-1",
+        "kind": "symbol",
+        "level": "l1",
+        "definition": "def-car",
+        "position": [50, 13],
+        "rotation": 0,
+        "scale": [1, 1],
+        "mirror": "none"
+      },
+      {
+        "id": "car-2",
+        "kind": "symbol",
+        "level": "l1",
+        "definition": "def-car",
+        "position": [62, 13],
+        "rotation": 0,
+        "scale": [1, 1],
+        "mirror": "none"
+      },
+      {
+        "id": "north",
+        "kind": "north_arrow",
+        "position": [-10, 40],
+        "rotation": 0
+      }
+    ]
+  },
+  "results": [
+    {
+      "profile": "org.example.residential-living-area",
+      "revision": "0193a5f8-2b9c-7d11-8e40-5a6b7c8d9e0f",
+      "computed_at": "2026-11-12T15:30:00Z",
+      "generator": {
+        "name": "Example Sketcher",
+        "version": "1.0.0"
+      },
+      "values": [
+        {
+          "scope": {
+            "unit": "main"
+          },
+          "measure": "finished_above_grade",
+          "value": 2270
+        },
+        {
+          "scope": {
+            "unit": "main"
+          },
+          "measure": "finished_below_grade",
+          "value": 560
+        },
+        {
+          "scope": {
+            "unit": "main"
+          },
+          "measure": "unfinished_below_grade",
+          "value": 336
+        },
+        {
+          "scope": {
+            "unit": "adu"
+          },
+          "measure": "finished_above_grade",
+          "value": 450
+        },
+        {
+          "scope": {
+            "space": "sunroom"
+          },
+          "measure": "enclosed_room",
+          "value": 73
+        },
+        {
+          "scope": {
+            "space": "garage"
+          },
+          "measure": "garage",
+          "value": 528
+        },
+        {
+          "scope": {
+            "space": "porch"
+          },
+          "measure": "porch",
+          "value": 96
+        },
+        {
+          "scope": {
+            "space": "deck"
+          },
+          "measure": "deck",
+          "value": 200
+        }
+      ]
+    }
+  ]
+}

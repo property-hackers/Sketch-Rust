@@ -72,6 +72,7 @@ pub const CATALOG: &[(&str, &str, &str)] = &[
     ("shortcuts", "Keyboard shortcuts", "F1"),
     ("zoom-fence", "Zoom fence", ""),
     ("email", "Email", ""),
+    ("version-history", "Version history", ""),
 ];
 
 /// What a command id does in this port.
@@ -124,6 +125,7 @@ pub fn action(id: &str) -> Action {
         "shortcuts" => Action::Run(Message::Shortcuts(crate::shortcuts::ShortcutsMsg::Open)),
         "zoom-fence" => Action::Run(Message::Status(S::ZoomFence)),
         "email" => Action::Run(Message::Email),
+        "version-history" => Action::Run(Message::Versions(crate::versions::VersionsMsg::Show)),
         "flip-sketch" => Action::Run(Message::PaletteMenu(crate::popup_menu::Kind::Flip)),
         "toggle-canvas-background" => Action::Run(Message::PaletteMenu(
             crate::popup_menu::Kind::CanvasBackground,
@@ -298,19 +300,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn the_catalog_is_the_originals_42_entries() {
-        assert_eq!(CATALOG.len(), 42);
+    fn the_catalog_is_the_originals_42_entries_plus_version_history() {
+        assert_eq!(CATALOG.len(), 43);
         assert_eq!(CATALOG[0], ("save", "Save", "F2"));
         assert_eq!(CATALOG[41], ("email", "Email", ""));
+        assert_eq!(CATALOG[42], ("version-history", "Version history", ""));
         let mut ids: Vec<&str> = CATALOG.iter().map(|c| c.0).collect();
         ids.sort_unstable();
         ids.dedup();
-        assert_eq!(ids.len(), 42, "ids are unique");
+        assert_eq!(ids.len(), 43, "ids are unique");
     }
 
     #[test]
     fn the_filter_is_a_case_insensitive_label_substring() {
-        assert_eq!(matches("").len(), 42);
+        assert_eq!(matches("").len(), 43);
         assert_eq!(matches("  MINI ").len(), 1);
         assert_eq!(CATALOG[matches("mini")[0]].0, "mini-map");
         // Labels only: the id `export-png` is not searched.

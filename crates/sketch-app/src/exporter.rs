@@ -305,6 +305,7 @@ mod tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         });
         drawing.polygons.push(sketch_core::model::Polygon {
             id: 4,
@@ -340,6 +341,7 @@ mod tests {
             label_italic: None,
             label_underline: None,
             label_color: None,
+            extra: Default::default(),
         });
         drawing
             .texts
@@ -401,6 +403,7 @@ mod tests {
             label_italic: None,
             label_underline: None,
             label_color: None,
+            extra: Default::default(),
         });
         let codes = sketch_core::geometry::area_codes::default_area_codes();
         let page = build_export_page(&drawing, 0.0, &codes);

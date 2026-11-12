@@ -65,6 +65,8 @@ pub enum Action {
     SaveAndExit,
     /// Open the sketch file dropped on the window, discarding the changes.
     OpenDropped(std::path::PathBuf),
+    /// Mark as Final...: the optional note is the prompt's input.
+    MarkFinal,
 }
 
 #[derive(Debug, Clone)]

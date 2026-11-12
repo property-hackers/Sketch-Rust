@@ -64,33 +64,40 @@ fn items() -> Vec<MenuItem> {
             extra: Some(g("pencil-simple", true, 12.0, ICON_ORANGE, 27.0, 192.0)),
             ..item(172.0, "floppy-disk", true, GREEN, "Save As...")
         },
-        item(219.0, "arrow-square-in", true, ICON_ORANGE, "Import..."),
-        item(255.0, "blueprint", true, PURPLE, "Import CAD..."),
-        item(291.0, "arrow-square-out", true, ICON_BLUE, "Export as PNG"),
-        item(327.0, "vector-two", true, MINT, "Export as SVG"),
-        item(363.0, "blueprint", true, PURPLE, "Export as DXF"),
-        item(399.0, "file-pdf", true, ICON_RED, "Export as PDF"),
-        item(446.0, "envelope-simple", true, ICON_ORANGE, "Email..."),
+        item(
+            208.0,
+            "list-numbers",
+            false,
+            ICON_BLUE,
+            "Version History...",
+        ),
+        item(255.0, "arrow-square-in", true, ICON_ORANGE, "Import..."),
+        item(291.0, "blueprint", true, PURPLE, "Import CAD..."),
+        item(327.0, "arrow-square-out", true, ICON_BLUE, "Export as PNG"),
+        item(363.0, "vector-two", true, MINT, "Export as SVG"),
+        item(399.0, "blueprint", true, PURPLE, "Export as DXF"),
+        item(435.0, "file-pdf", true, ICON_RED, "Export as PDF"),
+        item(482.0, "envelope-simple", true, ICON_ORANGE, "Email..."),
         MenuItem {
             // `margin-left:auto; font-size:14px` caret.
-            extra: Some(g("caret-right", false, 14.0, text_main(), 171.0, 504.0)),
+            extra: Some(g("caret-right", false, 14.0, text_main(), 171.0, 540.0)),
             ..item(
-                493.0,
+                529.0,
                 "clock-counter-clockwise",
                 true,
                 ICON_BLUE,
                 "Recent Files",
             )
         },
-        item(540.0, "printer", true, ICON_SLATE, "Print..."),
+        item(576.0, "printer", true, ICON_SLATE, "Print..."),
         MenuItem {
-            extra: Some(g("eye", true, 12.0, ICON_ORANGE, 27.0, 596.0)),
-            ..item(576.0, "printer", true, ICON_SLATE, "Print Preview...")
+            extra: Some(g("eye", true, 12.0, ICON_ORANGE, 27.0, 632.0)),
+            ..item(612.0, "printer", true, ICON_SLATE, "Print Preview...")
         },
-        item(612.0, "layout", false, ICON_BLUE, "Page Layout"),
-        item(648.0, "folder-open", true, ICON_BLUE, "Import Layer..."),
+        item(648.0, "layout", false, ICON_BLUE, "Page Layout"),
+        item(684.0, "folder-open", true, ICON_BLUE, "Import Layer..."),
         item(
-            684.0,
+            720.0,
             "clock-counter-clockwise",
             false,
             ICON_BLUE,
@@ -100,7 +107,7 @@ fn items() -> Vec<MenuItem> {
 }
 
 /// `.file-menu-divider` tops (page y).
-const DIVIDERS: [f32; 4] = [213.0, 440.0, 487.0, 534.0];
+const DIVIDERS: [f32; 4] = [249.0, 476.0, 523.0, 570.0];
 
 fn glyph_at<'a>(gl: &Glyph, ox: f32, oy: f32) -> Element<'a, Message> {
     at(
@@ -110,11 +117,23 @@ fn glyph_at<'a>(gl: &Glyph, ox: f32, oy: f32) -> Element<'a, Message> {
     )
 }
 
-fn menu_item<'a>(it: &MenuItem) -> Element<'a, Message> {
+/// Whether an item can be used right now. Only Version History depends on
+/// the open file (it needs a `.sketchy` store).
+fn item_enabled(text: &str, history_enabled: bool) -> bool {
+    text != "Version History..." || history_enabled
+}
+
+fn menu_item<'a>(it: &MenuItem, enabled: bool) -> Element<'a, Message> {
+    let dim = over(text_main(), 0.38, bg_panel());
+    let mut glyph = it.glyph;
+    let text_color = if enabled { text_main() } else { dim };
+    if !enabled {
+        glyph.color = dim;
+    }
     let mut body = stack![
-        glyph_at(&it.glyph, 0.0, it.y),
+        glyph_at(&glyph, 0.0, it.y),
         // Span: x=45 (15 + 20 + gap 10), y = top + 11, 13px, 15px line.
-        at(45.0, 11.0, label(it.text, 13.0, ARIAL, text_main(), 15.0)),
+        at(45.0, 11.0, label(it.text, 13.0, ARIAL, text_color, 15.0)),
     ]
     .width(MENU_W)
     .height(ITEM_H);
@@ -125,10 +144,12 @@ fn menu_item<'a>(it: &MenuItem) -> Element<'a, Message> {
         .width(MENU_W)
         .height(ITEM_H)
         .padding(0)
-        .on_press(item_action(it.text))
-        .style(|_, status| button::Style {
+        .on_press_maybe(enabled.then(|| item_action(it.text)))
+        .style(move |_, status| button::Style {
             background: match status {
-                button::Status::Hovered | button::Status::Pressed => Some(bg_hover().into()),
+                button::Status::Hovered | button::Status::Pressed if enabled => {
+                    Some(bg_hover().into())
+                }
                 _ => None,
             },
             ..button::Style::default()
@@ -145,6 +166,7 @@ fn item_action(text: &str) -> crate::Message {
         "Open..." => Message::OpenFile,
         "Save" => Message::SaveFile,
         "Save As..." => Message::SaveFileAs,
+        "Version History..." => Message::Versions(crate::versions::VersionsMsg::Show),
         "Import..." => crate::Message::ImportSketch,
         "Email..." => crate::Message::Email,
         "Print..." => crate::Message::Print,
@@ -199,10 +221,11 @@ fn file_btn<'a>(
 }
 
 /// The backstage menu column itself (200 wide, fills its height).
-fn menu<'a>(connected: Option<&str>) -> Element<'a, Message> {
+fn menu<'a>(connected: Option<&str>, history_enabled: bool) -> Element<'a, Message> {
     let mut list = stack![].width(MENU_W).height(Length::Fill);
     for it in items() {
-        list = list.push(at(0.0, it.y - MENU_Y, menu_item(&it)));
+        let enabled = item_enabled(it.text, history_enabled);
+        list = list.push(at(0.0, it.y - MENU_Y, menu_item(&it, enabled)));
     }
     for y in DIVIDERS {
         list = list.push(at(0.0, y - MENU_Y, rect(MENU_W, 1.0, border())));
@@ -257,9 +280,10 @@ fn menu<'a>(connected: Option<&str>) -> Element<'a, Message> {
 pub fn layer<'a>(
     recent_open: bool,
     recent: &[crate::recent::RecentFile],
+    history_enabled: bool,
     connected: Option<&str>,
 ) -> Element<'a, Message> {
-    let mut columns = row![container(menu(connected))
+    let mut columns = row![container(menu(connected, history_enabled))
         .width(MENU_W)
         .height(Length::Fill)];
     if recent_open {
@@ -423,7 +447,7 @@ mod tests {
     #[test]
     fn items_follow_the_measured_rhythm() {
         let its = items();
-        assert_eq!(its.len(), 17);
+        assert_eq!(its.len(), 18);
         // Consecutive items are 36px apart unless a divider (1px + 5px
         // margins) sits between them.
         for pair in its.windows(2) {

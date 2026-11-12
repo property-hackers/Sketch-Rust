@@ -82,6 +82,8 @@ pub enum DockTab {
     Symbols,
     Calcs,
     Layers,
+    /// Version history; shown only for a `.sketchy` store (not in `ALL`).
+    Versions,
 }
 
 impl DockTab {
@@ -100,6 +102,7 @@ impl DockTab {
             DockTab::Symbols => "Symbols",
             DockTab::Calcs => "Calcs",
             DockTab::Layers => "Layers",
+            DockTab::Versions => "Versions",
         }
     }
 
@@ -111,10 +114,12 @@ impl DockTab {
             DockTab::Symbols => "symbols",
             DockTab::Calcs => "calcs",
             DockTab::Layers => "layers",
+            DockTab::Versions => "versions",
         }
     }
 
-    /// The inverse of `key` — restoring `state.sidebar.active`.
+    /// The inverse of `key` — restoring `state.sidebar.active`. The Versions
+    /// tab is never restored: it exists only while a store is open.
     pub fn from_key(text: &str) -> Option<Self> {
         match text {
             "define" => Some(DockTab::Areas),
@@ -219,6 +224,9 @@ pub struct DockState {
     pub layer_rename: Option<(String, String)>,
     /// The right-click popup's row (`showLayerContextMenu`).
     pub layer_menu: Option<String>,
+    /// The version rows (newest first) while a `.sketchy` store is open; None
+    /// hides the Versions tab.
+    pub versions: Option<Vec<crate::versions::VersionRow>>,
 }
 
 impl Default for DockState {
@@ -245,6 +253,7 @@ impl Default for DockState {
             layer_hover: None,
             layer_rename: None,
             layer_menu: None,
+            versions: None,
         }
     }
 }
@@ -424,7 +433,7 @@ fn tab_edges(active: DockTab) -> [f32; 6] {
         DockTab::Text => [1089.0, 1137.0, 1178.0, 1240.0, 1287.0, 1340.0],
         DockTab::Symbols => [1089.0, 1137.0, 1176.0, 1241.0, 1288.0, 1340.0],
         DockTab::Calcs => [1089.0, 1137.0, 1177.0, 1239.0, 1287.0, 1340.0],
-        DockTab::Layers => [1089.0, 1137.0, 1176.0, 1238.0, 1285.0, 1340.0],
+        DockTab::Layers | DockTab::Versions => [1089.0, 1137.0, 1176.0, 1238.0, 1285.0, 1340.0],
     }
 }
 
@@ -501,10 +510,27 @@ fn tab_strip<'a>(st: &DockState, w: f32) -> Element<'a, Message> {
     let mut s = stack![at(0.0, 30.0, rect(w - 1.0, 1.0, border()))]
         .width(w - 1.0)
         .height(31);
-    for (i, t) in DockTab::ALL.into_iter().enumerate() {
-        let x0 = (edges[i] - left - 1.0 + grow * i as f32).round();
-        let x1 = (edges[i + 1] - left - 1.0 + grow * (i + 1) as f32).round();
-        s = s.push(at(x0, 0.0, tab(t, x1 - x0, st.active == t)));
+    if st.versions.is_some() {
+        // Six tabs: the measured five-tab edges no longer apply, so the same
+        // span is shared by label length.
+        let start = edges[0] - left - 1.0;
+        let span = edges[5] - edges[0] + grow * 5.0;
+        let tabs: Vec<DockTab> = DockTab::ALL.into_iter().chain([DockTab::Versions]).collect();
+        let weight = |t: &DockTab| t.label().chars().count() as f32 + 3.0;
+        let total: f32 = tabs.iter().map(weight).sum();
+        let mut used = 0.0;
+        for t in &tabs {
+            let x0 = (start + span * used / total).round();
+            used += weight(t);
+            let x1 = (start + span * used / total).round();
+            s = s.push(at(x0, 0.0, tab(*t, x1 - x0, st.active == *t)));
+        }
+    } else {
+        for (i, t) in DockTab::ALL.into_iter().enumerate() {
+            let x0 = (edges[i] - left - 1.0 + grow * i as f32).round();
+            let x1 = (edges[i + 1] - left - 1.0 + grow * (i + 1) as f32).round();
+            s = s.push(at(x0, 0.0, tab(t, x1 - x0, st.active == t)));
+        }
     }
     let pin_color = if st.pinned { ICON_BLUE } else { muted() };
     // `.sidebar-collapse` pair: left borders at page x 1342 / 1372 (default).
@@ -537,7 +563,7 @@ fn tab_strip<'a>(st: &DockState, w: f32) -> Element<'a, Message> {
 // ---------------------------------------------------------------------------
 
 /// `::-webkit-scrollbar` (10px, 6px thumb inset 2px) on a list.
-fn scroll<'a>(content: impl Into<Element<'a, Message>>, bg: Color) -> Element<'a, Message> {
+pub(crate) fn scroll<'a>(content: impl Into<Element<'a, Message>>, bg: Color) -> Element<'a, Message> {
     scrollable::Scrollable::new(content)
         .direction(Direction::Vertical(
             Scrollbar::new()
@@ -579,7 +605,7 @@ fn scroll<'a>(content: impl Into<Element<'a, Message>>, bg: Color) -> Element<'a
 
 /// `.action-btn` — 25px, `--bg-hover` fill, 1px border, 13.33px control font.
 /// The crate-message variant (the Calcs panel's Expand/Collapse All).
-fn msg_action_btn<'a>(label_s: &str, w: impl Into<Length>, msg: Message) -> Element<'a, Message> {
+pub(crate) fn msg_action_btn<'a>(label_s: &str, w: impl Into<Length>, msg: Message) -> Element<'a, Message> {
     button(
         container(label(label_s, 13.333, ARIAL, text_main(), 15.0))
             .width(Length::Fill)
@@ -2264,6 +2290,8 @@ pub struct PanelContext<'a> {
     pub auto_post: &'a sketch_core::model::AutoPost,
     pub dimensions: bool,
     pub placement: crate::view_state::DimensionPlacement,
+    /// The revision id on screen while viewing an old version.
+    pub viewing: Option<&'a str>,
 }
 
 pub fn view<'a>(
@@ -2293,6 +2321,10 @@ pub fn view<'a>(
         DockTab::Symbols => symbols_panel_with_favorites(st, lib, panels.favorites),
         DockTab::Calcs => calcs_panel(cw, calcs, totals, &st.calcs_collapsed, &st.calcs_expanded),
         DockTab::Layers => layers_panel(st, layers, area),
+        DockTab::Versions => match &st.versions {
+            Some(rows) => crate::versions::panel(rows, panels.viewing),
+            None => Space::new().into(),
+        },
     };
     let panel = container(body)
         .padding(8)

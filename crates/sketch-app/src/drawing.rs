@@ -669,6 +669,7 @@ impl Drawing {
         first.end = projection;
         let mut second = first.clone();
         second.id = second_id;
+        second.forget_sketchy_id();
         second.start = projection;
         second.end = original_end;
         self.lines.insert(index + 1, second);
@@ -916,6 +917,7 @@ impl Drawing {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         });
         self.suppress_dimension_next = false;
         self.line_ids.push(id);
@@ -951,6 +953,7 @@ impl Drawing {
                 line_style: None,
                 dimension_position: None,
                 dimension_anchor: None,
+                extra: Default::default(),
             });
             self.suppress_dimension_next = false;
             self.line_ids.push(id);
@@ -1036,6 +1039,7 @@ impl Drawing {
                     label_italic: None,
                     label_underline: None,
                     label_color: None,
+                    extra: Default::default(),
                 });
             }
         }
@@ -1180,6 +1184,7 @@ impl Drawing {
         );
         let mut mirrored = last.clone();
         mirrored.id = self.gen_id();
+        mirrored.forget_sketchy_id();
         mirrored.start = self.cursor;
         mirrored.end = target;
         mirrored.color = mirrored.color.or_else(|| Some(self.draw_color.clone()));
@@ -1227,6 +1232,7 @@ impl Drawing {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         });
         self.suppress_dimension_next = false;
         self.line_ids.push(id);
@@ -1419,6 +1425,7 @@ impl Drawing {
                 line_style: None,
                 dimension_position: None,
                 dimension_anchor: None,
+                extra: Default::default(),
             });
             ids.push(id);
         }
@@ -1472,6 +1479,7 @@ impl Drawing {
                 label_italic: None,
                 label_underline: None,
                 label_color: None,
+                extra: Default::default(),
             });
         }
     }
@@ -1537,6 +1545,7 @@ pub fn tests_wall() -> SketchLine {
         line_style: None,
         dimension_position: None,
         dimension_anchor: None,
+        extra: Default::default(),
     }
 }
 
@@ -2040,6 +2049,7 @@ mod bow_tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         });
         d
     }
@@ -2129,6 +2139,7 @@ mod heal_tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         }
     }
 
@@ -2197,6 +2208,7 @@ mod edit_tools_tests {
                 line_style: None,
                 dimension_position: None,
                 dimension_anchor: None,
+                extra: Default::default(),
             }],
             ..Drawing::default()
         }
@@ -2277,6 +2289,7 @@ mod curve_tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         }
     }
 

@@ -636,6 +636,7 @@ pub fn heal_exterior_wall_joins(
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         };
         wall.bow_angle = 0.0;
         virtual_by_id.insert(edge.id.clone(), wall);
@@ -991,6 +992,7 @@ pub fn close_joined_exterior_loops(
                 label_italic: None,
                 label_underline: None,
                 label_color: None,
+                extra: Default::default(),
             });
         }
         existing.insert(candidate.signature.clone());
@@ -1042,6 +1044,7 @@ mod tests {
             line_style: None,
             dimension_position: None,
             dimension_anchor: None,
+            extra: Default::default(),
         }
     }
 

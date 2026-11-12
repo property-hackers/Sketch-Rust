@@ -45,6 +45,10 @@ pub struct PlacedSymbol {
     // layer id the original stores (and `apply_model` maps back).
     #[serde(default)]
     pub layer_id: i64,
+    /// Keys this build does not model (Sketchy residue such as `sketchy_id`
+    /// or `sketchy_other`), kept so a save writes them back unchanged.
+    #[serde(flatten)]
+    pub extra: serde_json::Map<String, serde_json::Value>,
 }
 
 fn default_scale() -> f64 {
@@ -74,6 +78,11 @@ pub fn openings(symbols: &[PlacedSymbol]) -> Vec<sketch_core::solids::Opening> {
 }
 
 impl PlacedSymbol {
+    /// Forget the Sketchy id: a copy of this symbol is a new element.
+    pub fn forget_sketchy_id(&mut self) {
+        self.extra.remove(sketch_core::model::SKETCHY_ID_KEY);
+    }
+
     /// Keep the hosted opening in step with geometry, including repeated drags.
     pub fn set_scale(&mut self, scale: f64) {
         if !scale.is_finite() || scale <= 0.0 {

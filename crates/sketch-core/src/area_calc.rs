@@ -638,6 +638,7 @@ mod tests {
             label_italic: None,
             label_underline: None,
             label_color: None,
+            extra: Default::default(),
         }
     }
 

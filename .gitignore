@@ -3,3 +3,4 @@ target/
 dist/
 # Personal symbol favourites and library profiles.
 backups/
+.DS_Store

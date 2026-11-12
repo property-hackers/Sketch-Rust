@@ -8,6 +8,9 @@
 set -eu
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.cargo/bin:$PATH"
+# A release must include the Apex compatibility component. For an Apex-less
+# dev package, run with SKETCH_REQUIRE_APEX=0.
+export SKETCH_REQUIRE_APEX="${SKETCH_REQUIRE_APEX:-1}"
 cargo build --release -p sketch-app
 mkdir -p dist
 cp target/release/sketch-app.exe dist/

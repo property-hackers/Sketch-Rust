@@ -63,6 +63,9 @@ impl Setup {
                 Ok(None) => "No Apex-compatible host launch is registered.".into(),
                 Err(e) => format!("Could not read the host registration: {e}"),
             };
+            if !cfg!(apex_component) {
+                self.status.push_str("\nThis build does not include Apex compatibility.");
+            }
         }
         #[cfg(not(windows))]
         {
@@ -170,22 +173,24 @@ pub fn layer(setup: &Setup, size: iced::Size) -> Option<Element<'_, Message>> {
         };
         content = content.push(text(value).font(SEGOE).size(13).color(color));
     }
+    // An Apex-less build cannot enable integration but can still restore.
+    let can_enable = !cfg!(all(windows, not(apex_component)));
     let actions: Element<'_, Message> = if size.width < 650.0 {
-        column![
-            action("Enable integration", Msg::Enable),
-            action("Restore previous provider", Msg::Restore),
-            action("Close", Msg::Close),
-        ]
-        .spacing(8)
-        .into()
+        let mut col = column![].spacing(8);
+        if can_enable {
+            col = col.push(action("Enable integration", Msg::Enable));
+        }
+        col.push(action("Restore previous provider", Msg::Restore))
+            .push(action("Close", Msg::Close))
+            .into()
     } else {
-        row![
-            action("Enable integration", Msg::Enable),
-            action("Restore previous provider", Msg::Restore),
-            action("Close", Msg::Close),
-        ]
-        .spacing(8)
-        .into()
+        let mut r = row![].spacing(8);
+        if can_enable {
+            r = r.push(action("Enable integration", Msg::Enable));
+        }
+        r.push(action("Restore previous provider", Msg::Restore))
+            .push(action("Close", Msg::Close))
+            .into()
     };
     content = content.push(actions).width(Length::Fill);
     let card = container(

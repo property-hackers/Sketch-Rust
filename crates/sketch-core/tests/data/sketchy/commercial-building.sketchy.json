@@ -1,0 +1,1622 @@
+{
+  "format": "sketchy",
+  "format_version": "0.2",
+  "$schema": "https://property-hackers.github.io/sketchy/schema/0.2/sketchy.schema.json",
+  "extensions_used": ["org.example.leasing"],
+  "id": "0193a3e5-3e70-7152-c3d4-e5f60718293a",
+  "revision": {
+    "id": "0193a6a1-7f00-7263-d4e5-f60718293a4b",
+    "parents": ["0193a3e5-4f81-7263-d4e5-f60718293a4b", "0193a3e5-5092-7374-e5f6-0718293a4b5c"],
+    "sequence": 3,
+    "created_at": "2026-11-12T20:05:00Z",
+    "author": {
+      "name": "Riley Example"
+    },
+    "generator": {
+      "name": "Example Sketcher",
+      "version": "1.0.0"
+    },
+    "message": "Merged tenant layout updates from leasing and the site survey",
+    "status": "draft",
+    "content_hash": "sha256:c3d3acbefb9fb8ec9977b6eb646dc6d862ec4a7571e928f4aed3992383714ceb"
+  },
+  "history": [
+    {
+      "id": "0193a3e5-3f70-7152-c3d4-e5f60718293a",
+      "parents": [],
+      "sequence": 1,
+      "created_at": "2026-11-05T14:00:00Z",
+      "author": {
+        "name": "Riley Example"
+      },
+      "message": "Base building from survey",
+      "status": "draft"
+    },
+    {
+      "id": "0193a3e5-4f81-7263-d4e5-f60718293a4b",
+      "parents": ["0193a3e5-3f70-7152-c3d4-e5f60718293a"],
+      "sequence": 2,
+      "created_at": "2026-11-08T10:30:00Z",
+      "author": {
+        "name": "Jordan Example"
+      },
+      "message": "Split second floor into suites 201 and 202",
+      "status": "draft"
+    },
+    {
+      "id": "0193a3e5-5092-7374-e5f6-0718293a4b5c",
+      "parents": ["0193a3e5-3f70-7152-c3d4-e5f60718293a"],
+      "sequence": 2,
+      "created_at": "2026-11-09T16:45:00Z",
+      "author": {
+        "name": "Riley Example"
+      },
+      "message": "Added atrium and loading door from site survey",
+      "status": "draft"
+    }
+  ],
+  "title": "300 Commerce Way",
+  "generator": {
+    "name": "Example Sketcher",
+    "version": "1.0.0"
+  },
+  "length_unit": "ft",
+  "measured_to": "exterior_face",
+  "property": {
+    "address": "300 Commerce Way, Sampletown",
+    "identifiers": [
+      {
+        "scheme": "parcel",
+        "value": "00-000-300"
+      }
+    ]
+  },
+  "site": {
+    "georeference": {
+      "crs": "EPSG:4326",
+      "origin": [-100, 40],
+      "bearing": 12
+    },
+    "spaces": [
+      {
+        "id": "parking",
+        "name": "Front parking",
+        "use": "parking",
+        "shape": {
+          "type": "polygon",
+          "points": [[0, -72], [112, -72], [112, -12], [0, -12]]
+        },
+        "attributes": {
+          "Stalls": "26",
+          "Accessible stalls": "2",
+          "Surface": "Asphalt"
+        }
+      },
+      {
+        "id": "parking-rear",
+        "name": "Rear parking",
+        "use": "parking",
+        "shape": {
+          "type": "polygon",
+          "points": [[0, 76], [112, 76], [112, 136], [0, 136]]
+        },
+        "attributes": {
+          "Stalls": "24",
+          "Surface": "Asphalt"
+        }
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "t101",
+      "name": "Suite 101",
+      "kind": "tenant_space",
+      "extras": {
+        "org.example.leasing.status": "leased"
+      }
+    },
+    {
+      "id": "t102",
+      "name": "Suite 102",
+      "kind": "tenant_space",
+      "extras": {
+        "org.example.leasing.status": "vacant"
+      }
+    },
+    {
+      "id": "t103",
+      "name": "Suite 103",
+      "kind": "tenant_space",
+      "extras": {
+        "org.example.leasing.status": "leased"
+      }
+    },
+    {
+      "id": "t201",
+      "name": "Suite 201",
+      "kind": "tenant_space",
+      "extras": {
+        "org.example.leasing.status": "leased"
+      }
+    },
+    {
+      "id": "t202",
+      "name": "Suite 202",
+      "kind": "tenant_space",
+      "extras": {
+        "org.example.leasing.status": "vacant"
+      }
+    },
+    {
+      "id": "t301",
+      "name": "Suite 301",
+      "kind": "tenant_space",
+      "extras": {
+        "org.example.leasing.status": "leased"
+      }
+    },
+    {
+      "id": "common",
+      "name": "Building common areas",
+      "kind": "common_area"
+    }
+  ],
+  "structures": [
+    {
+      "id": "bldg",
+      "name": "Commerce Way building",
+      "kind": "mixed_use",
+      "levels": [
+        {
+          "id": "l1",
+          "name": "Ground floor",
+          "grade": "above",
+          "sequence": 1,
+          "ceiling": {
+            "height": 14
+          },
+          "spaces": [
+            {
+              "id": "l1-floor",
+              "name": "Ground floor gross",
+              "use": "floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [112, 0], [112, 64], [0, 64]]
+              }
+            },
+            {
+              "id": "s101",
+              "name": "Suite 101",
+              "use": "retail",
+              "finished": true,
+              "within": "l1-floor",
+              "unit": "t101",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [44, 0], [44, 64], [0, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "OCC"
+                }
+              ]
+            },
+            {
+              "id": "s102",
+              "name": "Suite 102",
+              "use": "retail",
+              "finished": true,
+              "within": "l1-floor",
+              "unit": "t102",
+              "shape": {
+                "type": "polygon",
+                "points": [[68, 0], [112, 0], [112, 34], [68, 34]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "OCC"
+                }
+              ]
+            },
+            {
+              "id": "s103",
+              "name": "Suite 103",
+              "use": "retail",
+              "finished": true,
+              "within": "l1-floor",
+              "unit": "t103",
+              "shape": {
+                "type": "polygon",
+                "points": [[68, 34], [112, 34], [112, 64], [68, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "OCC"
+                }
+              ]
+            },
+            {
+              "id": "lobby",
+              "name": "Lobby",
+              "use": "lobby",
+              "finished": true,
+              "within": "l1-floor",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[44, 0], [68, 0], [68, 28], [44, 28]]
+              },
+              "height": 24,
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "l1-core",
+              "name": "Core",
+              "use": "circulation",
+              "finished": true,
+              "within": "l1-floor",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[44, 28], [68, 28], [68, 64], [44, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "l1-stair-a",
+              "name": "Stair A",
+              "use": "stair",
+              "finished": true,
+              "within": "l1-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[44, 28], [50, 28], [50, 46], [44, 46]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "VRT"
+                }
+              ]
+            },
+            {
+              "id": "l1-stair-b",
+              "name": "Stair B",
+              "use": "stair",
+              "finished": true,
+              "within": "l1-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[62, 28], [68, 28], [68, 46], [62, 46]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "VRT"
+                }
+              ]
+            },
+            {
+              "id": "l1-rr-m",
+              "name": "Men's restroom",
+              "use": "bathroom",
+              "finished": true,
+              "within": "l1-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[44, 52], [54, 52], [54, 64], [44, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "l1-util",
+              "name": "Electrical and janitor",
+              "use": "utility",
+              "finished": true,
+              "within": "l1-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[54, 52], [58, 52], [58, 64], [54, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "l1-rr-w",
+              "name": "Women's restroom",
+              "use": "bathroom",
+              "finished": true,
+              "within": "l1-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[58, 52], [68, 52], [68, 64], [58, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            }
+          ],
+          "openings": [
+            {
+              "id": "sf-101-door",
+              "kind": "double_door",
+              "space": "s101",
+              "edge": 0,
+              "offset": 19,
+              "width": 6
+            },
+            {
+              "id": "sf-101-w1",
+              "kind": "window",
+              "space": "s101",
+              "edge": 0,
+              "offset": 2,
+              "width": 15,
+              "height": 9,
+              "sill_height": 1.5
+            },
+            {
+              "id": "sf-101-w2",
+              "kind": "window",
+              "space": "s101",
+              "edge": 0,
+              "offset": 27,
+              "width": 15,
+              "height": 9,
+              "sill_height": 1.5
+            },
+            {
+              "id": "sf-102-door",
+              "kind": "double_door",
+              "space": "s102",
+              "edge": 0,
+              "offset": 19,
+              "width": 6
+            },
+            {
+              "id": "sf-102-w1",
+              "kind": "window",
+              "space": "s102",
+              "edge": 0,
+              "offset": 2,
+              "width": 15,
+              "height": 9,
+              "sill_height": 1.5
+            },
+            {
+              "id": "sf-102-w2",
+              "kind": "window",
+              "space": "s102",
+              "edge": 0,
+              "offset": 27,
+              "width": 15,
+              "height": 9,
+              "sill_height": 1.5
+            },
+            {
+              "id": "main-entry",
+              "kind": "double_door",
+              "space": "lobby",
+              "edge": 0,
+              "offset": 9,
+              "width": 6
+            },
+            {
+              "id": "lobby-w1",
+              "kind": "window",
+              "space": "lobby",
+              "edge": 0,
+              "offset": 1,
+              "width": 7,
+              "height": 14,
+              "sill_height": 0
+            },
+            {
+              "id": "lobby-w2",
+              "kind": "window",
+              "space": "lobby",
+              "edge": 0,
+              "offset": 16,
+              "width": 7,
+              "height": 14,
+              "sill_height": 0
+            },
+            {
+              "id": "rear-101",
+              "kind": "door",
+              "space": "s101",
+              "edge": 2,
+              "offset": 18,
+              "width": 3,
+              "swing": "out_left"
+            },
+            {
+              "id": "loading",
+              "kind": "garage_door",
+              "space": "s103",
+              "edge": 2,
+              "offset": 25,
+              "width": 10
+            }
+          ],
+          "features": [
+            {
+              "id": "stair-a-l1",
+              "kind": "stair",
+              "position": [47, 37],
+              "width": 5,
+              "length": 16,
+              "connects_to": "l2",
+              "stair": {
+                "configuration": "straight",
+                "direction": "up",
+                "risers": 26
+              }
+            },
+            {
+              "id": "stair-b-l1",
+              "kind": "stair",
+              "position": [65, 37],
+              "width": 5,
+              "length": 16,
+              "connects_to": "l2",
+              "stair": {
+                "configuration": "straight",
+                "direction": "up",
+                "risers": 26
+              }
+            },
+            {
+              "id": "elev-1-l1",
+              "kind": "elevator",
+              "position": [53.5, 34],
+              "width": 5,
+              "length": 7
+            },
+            {
+              "id": "elev-2-l1",
+              "kind": "elevator",
+              "position": [58.5, 34],
+              "width": 5,
+              "length": 7
+            },
+            {
+              "id": "wc-m1-l1",
+              "kind": "toilet",
+              "position": [46, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "wc-m2-l1",
+              "kind": "toilet",
+              "position": [49.5, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "wc-w1-l1",
+              "kind": "toilet",
+              "position": [60, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "wc-w2-l1",
+              "kind": "toilet",
+              "position": [63, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "wc-w3-l1",
+              "kind": "toilet",
+              "position": [66, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "sink-m-l1",
+              "kind": "sink",
+              "position": [49, 54],
+              "width": 4,
+              "length": 1.8
+            },
+            {
+              "id": "sink-w-l1",
+              "kind": "sink",
+              "position": [63, 54],
+              "width": 4,
+              "length": 1.8
+            },
+            {
+              "id": "panel-l1",
+              "kind": "electrical_panel",
+              "position": [56, 62.5],
+              "width": 2,
+              "length": 1
+            },
+            {
+              "id": "col-lobby-w",
+              "kind": "column",
+              "position": [49, 14],
+              "shape": {
+                "type": "circle",
+                "center": [0, 0],
+                "radius": 0.75
+              }
+            },
+            {
+              "id": "col-lobby-e",
+              "kind": "column",
+              "position": [63, 14],
+              "shape": {
+                "type": "circle",
+                "center": [0, 0],
+                "radius": 0.75
+              }
+            }
+          ]
+        },
+        {
+          "id": "l2",
+          "name": "Second floor",
+          "grade": "above",
+          "sequence": 2,
+          "ceiling": {
+            "height": 10
+          },
+          "spaces": [
+            {
+              "id": "l2-floor",
+              "name": "Second floor gross",
+              "use": "floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [112, 0], [112, 64], [0, 64]]
+              }
+            },
+            {
+              "id": "s201",
+              "name": "Suite 201",
+              "use": "office",
+              "finished": true,
+              "within": "l2-floor",
+              "unit": "t201",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [44, 0], [44, 64], [0, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "OCC"
+                }
+              ]
+            },
+            {
+              "id": "s202",
+              "name": "Suite 202",
+              "use": "office",
+              "finished": true,
+              "within": "l2-floor",
+              "unit": "t202",
+              "shape": {
+                "type": "polygon",
+                "points": [[68, 0], [112, 0], [112, 64], [68, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "OCC"
+                }
+              ]
+            },
+            {
+              "id": "gallery",
+              "name": "Atrium gallery",
+              "use": "circulation",
+              "finished": true,
+              "within": "l2-floor",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[44, 0], [68, 0], [68, 28], [44, 28]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "l2-core",
+              "name": "Core",
+              "use": "circulation",
+              "finished": true,
+              "within": "l2-floor",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[44, 28], [68, 28], [68, 64], [44, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "l2-stair-a",
+              "name": "Stair A",
+              "use": "stair",
+              "finished": true,
+              "within": "l2-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[44, 28], [50, 28], [50, 46], [44, 46]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "VRT"
+                }
+              ]
+            },
+            {
+              "id": "l2-stair-b",
+              "name": "Stair B",
+              "use": "stair",
+              "finished": true,
+              "within": "l2-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[62, 28], [68, 28], [68, 46], [62, 46]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "VRT"
+                }
+              ]
+            },
+            {
+              "id": "l2-rr-m",
+              "name": "Men's restroom",
+              "use": "bathroom",
+              "finished": true,
+              "within": "l2-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[44, 52], [54, 52], [54, 64], [44, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "l2-util",
+              "name": "Electrical and janitor",
+              "use": "utility",
+              "finished": true,
+              "within": "l2-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[54, 52], [58, 52], [58, 64], [54, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "l2-rr-w",
+              "name": "Women's restroom",
+              "use": "bathroom",
+              "finished": true,
+              "within": "l2-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[58, 52], [68, 52], [68, 64], [58, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            }
+          ],
+          "openings": [
+            {
+              "id": "s201-w1",
+              "kind": "window",
+              "space": "s201",
+              "edge": 0,
+              "offset": 3,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s201-w2",
+              "kind": "window",
+              "space": "s201",
+              "edge": 0,
+              "offset": 13,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s201-w3",
+              "kind": "window",
+              "space": "s201",
+              "edge": 0,
+              "offset": 23,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s201-w4",
+              "kind": "window",
+              "space": "s201",
+              "edge": 0,
+              "offset": 33,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s202-w1",
+              "kind": "window",
+              "space": "s202",
+              "edge": 0,
+              "offset": 3,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s202-w2",
+              "kind": "window",
+              "space": "s202",
+              "edge": 0,
+              "offset": 13,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s202-w3",
+              "kind": "window",
+              "space": "s202",
+              "edge": 0,
+              "offset": 23,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s202-w4",
+              "kind": "window",
+              "space": "s202",
+              "edge": 0,
+              "offset": 33,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            }
+          ],
+          "features": [
+            {
+              "id": "stair-a-l2",
+              "kind": "stair",
+              "position": [47, 37],
+              "width": 5,
+              "length": 16,
+              "connects_to": "l3",
+              "stair": {
+                "configuration": "straight",
+                "direction": "up",
+                "risers": 20
+              }
+            },
+            {
+              "id": "stair-b-l2",
+              "kind": "stair",
+              "position": [65, 37],
+              "width": 5,
+              "length": 16,
+              "connects_to": "l3",
+              "stair": {
+                "configuration": "straight",
+                "direction": "up",
+                "risers": 20
+              }
+            },
+            {
+              "id": "elev-1-l2",
+              "kind": "elevator",
+              "position": [53.5, 34],
+              "width": 5,
+              "length": 7
+            },
+            {
+              "id": "elev-2-l2",
+              "kind": "elevator",
+              "position": [58.5, 34],
+              "width": 5,
+              "length": 7
+            },
+            {
+              "id": "wc-m1-l2",
+              "kind": "toilet",
+              "position": [46, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "wc-m2-l2",
+              "kind": "toilet",
+              "position": [49.5, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "wc-w1-l2",
+              "kind": "toilet",
+              "position": [60, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "wc-w2-l2",
+              "kind": "toilet",
+              "position": [63, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "wc-w3-l2",
+              "kind": "toilet",
+              "position": [66, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "sink-m-l2",
+              "kind": "sink",
+              "position": [49, 54],
+              "width": 4,
+              "length": 1.8
+            },
+            {
+              "id": "sink-w-l2",
+              "kind": "sink",
+              "position": [63, 54],
+              "width": 4,
+              "length": 1.8
+            },
+            {
+              "id": "panel-l2",
+              "kind": "electrical_panel",
+              "position": [56, 62.5],
+              "width": 2,
+              "length": 1
+            }
+          ],
+          "voids": [
+            {
+              "id": "atrium-2",
+              "name": "Atrium open to below",
+              "shape": {
+                "type": "circle",
+                "center": [56, 14],
+                "radius": 6
+              }
+            }
+          ]
+        },
+        {
+          "id": "l3",
+          "name": "Third floor",
+          "grade": "above",
+          "sequence": 3,
+          "ceiling": {
+            "height": 10
+          },
+          "spaces": [
+            {
+              "id": "l3-floor",
+              "name": "Third floor gross",
+              "use": "floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [112, 0], [112, 64], [0, 64]]
+              }
+            },
+            {
+              "id": "s301",
+              "name": "Suite 301",
+              "use": "office",
+              "finished": true,
+              "within": "l3-floor",
+              "unit": "t301",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [112, 0], [112, 64], [68, 64], [68, 28], [44, 28], [44, 64], [0, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "OCC"
+                }
+              ]
+            },
+            {
+              "id": "l3-core",
+              "name": "Core",
+              "use": "circulation",
+              "finished": true,
+              "within": "l3-floor",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[44, 28], [68, 28], [68, 64], [44, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "l3-stair-a",
+              "name": "Stair A",
+              "use": "stair",
+              "finished": true,
+              "within": "l3-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[44, 28], [50, 28], [50, 46], [44, 46]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "VRT"
+                }
+              ]
+            },
+            {
+              "id": "l3-stair-b",
+              "name": "Stair B",
+              "use": "stair",
+              "finished": true,
+              "within": "l3-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[62, 28], [68, 28], [68, 46], [62, 46]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "VRT"
+                }
+              ]
+            },
+            {
+              "id": "l3-rr-m",
+              "name": "Men's restroom",
+              "use": "bathroom",
+              "finished": true,
+              "within": "l3-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[44, 52], [54, 52], [54, 64], [44, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "l3-util",
+              "name": "Electrical and janitor",
+              "use": "utility",
+              "finished": true,
+              "within": "l3-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[54, 52], [58, 52], [58, 64], [54, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "l3-rr-w",
+              "name": "Women's restroom",
+              "use": "bathroom",
+              "finished": true,
+              "within": "l3-core",
+              "unit": "common",
+              "shape": {
+                "type": "polygon",
+                "points": [[58, 52], [68, 52], [68, 64], [58, 64]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            }
+          ],
+          "openings": [
+            {
+              "id": "s301-w1",
+              "kind": "window",
+              "space": "s301",
+              "edge": 0,
+              "offset": 3,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s301-w2",
+              "kind": "window",
+              "space": "s301",
+              "edge": 0,
+              "offset": 13,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s301-w3",
+              "kind": "window",
+              "space": "s301",
+              "edge": 0,
+              "offset": 23,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s301-w4",
+              "kind": "window",
+              "space": "s301",
+              "edge": 0,
+              "offset": 33,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s301-w5",
+              "kind": "window",
+              "space": "s301",
+              "edge": 0,
+              "offset": 43,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s301-w6",
+              "kind": "window",
+              "space": "s301",
+              "edge": 0,
+              "offset": 53,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s301-w7",
+              "kind": "window",
+              "space": "s301",
+              "edge": 0,
+              "offset": 63,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s301-w8",
+              "kind": "window",
+              "space": "s301",
+              "edge": 0,
+              "offset": 73,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s301-w9",
+              "kind": "window",
+              "space": "s301",
+              "edge": 0,
+              "offset": 83,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s301-w10",
+              "kind": "window",
+              "space": "s301",
+              "edge": 0,
+              "offset": 93,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            },
+            {
+              "id": "s301-w11",
+              "kind": "window",
+              "space": "s301",
+              "edge": 0,
+              "offset": 103,
+              "width": 6,
+              "height": 5,
+              "sill_height": 3
+            }
+          ],
+          "features": [
+            {
+              "id": "stair-a-l3",
+              "kind": "stair",
+              "position": [47, 37],
+              "width": 5,
+              "length": 16,
+              "connects_to": "l2",
+              "stair": {
+                "configuration": "straight",
+                "direction": "down",
+                "risers": 20
+              }
+            },
+            {
+              "id": "stair-b-l3",
+              "kind": "stair",
+              "position": [65, 37],
+              "width": 5,
+              "length": 16,
+              "connects_to": "l2",
+              "stair": {
+                "configuration": "straight",
+                "direction": "down",
+                "risers": 20
+              }
+            },
+            {
+              "id": "elev-1-l3",
+              "kind": "elevator",
+              "position": [53.5, 34],
+              "width": 5,
+              "length": 7
+            },
+            {
+              "id": "elev-2-l3",
+              "kind": "elevator",
+              "position": [58.5, 34],
+              "width": 5,
+              "length": 7
+            },
+            {
+              "id": "wc-m1-l3",
+              "kind": "toilet",
+              "position": [46, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "wc-m2-l3",
+              "kind": "toilet",
+              "position": [49.5, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "wc-w1-l3",
+              "kind": "toilet",
+              "position": [60, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "wc-w2-l3",
+              "kind": "toilet",
+              "position": [63, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "wc-w3-l3",
+              "kind": "toilet",
+              "position": [66, 62],
+              "width": 1.5,
+              "length": 2.5
+            },
+            {
+              "id": "sink-m-l3",
+              "kind": "sink",
+              "position": [49, 54],
+              "width": 4,
+              "length": 1.8
+            },
+            {
+              "id": "sink-w-l3",
+              "kind": "sink",
+              "position": [63, 54],
+              "width": 4,
+              "length": 1.8
+            },
+            {
+              "id": "panel-l3",
+              "kind": "electrical_panel",
+              "position": [56, 62.5],
+              "width": 2,
+              "length": 1
+            }
+          ],
+          "voids": [
+            {
+              "id": "atrium-3",
+              "name": "Atrium open to below",
+              "shape": {
+                "type": "circle",
+                "center": [56, 14],
+                "radius": 6
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "classification_schemes": [
+    {
+      "scheme": "org.example.office-measure",
+      "name": "Example office measurement categories",
+      "codes": [
+        {
+          "code": "OCC",
+          "label": "Occupant area"
+        },
+        {
+          "code": "CMN",
+          "label": "Building common area"
+        },
+        {
+          "code": "VRT",
+          "label": "Major vertical penetration"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "styles": {
+      "suite": {
+        "stroke": "#1f2933",
+        "stroke_width": 0.3,
+        "fill": "#eef2f7"
+      },
+      "common": {
+        "stroke": "#1f2933",
+        "stroke_width": 0.2,
+        "fill": "#dde3ea"
+      }
+    },
+    "element_styles": {
+      "s101": "suite",
+      "s102": "suite",
+      "s103": "suite",
+      "s201": "suite",
+      "s202": "suite",
+      "s301": "suite",
+      "lobby": "common",
+      "gallery": "common",
+      "l1-core": "common",
+      "l2-core": "common",
+      "l3-core": "common"
+    },
+    "pages": [
+      {
+        "id": "p1",
+        "name": "Ground floor",
+        "size": "tabloid",
+        "orientation": "landscape",
+        "scale": 0.0052,
+        "views": [
+          {
+            "structure": "bldg",
+            "levels": ["l1"]
+          }
+        ]
+      },
+      {
+        "id": "p2",
+        "name": "Second floor",
+        "size": "tabloid",
+        "orientation": "landscape",
+        "scale": 0.0052,
+        "views": [
+          {
+            "structure": "bldg",
+            "levels": ["l2"]
+          }
+        ]
+      },
+      {
+        "id": "p3",
+        "name": "Third floor",
+        "size": "tabloid",
+        "orientation": "landscape",
+        "scale": 0.0052,
+        "views": [
+          {
+            "structure": "bldg",
+            "levels": ["l3"]
+          }
+        ]
+      }
+    ],
+    "annotations": [
+      {
+        "id": "lbl-s101",
+        "kind": "label",
+        "level": "l1",
+        "target": "s101",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-s102",
+        "kind": "label",
+        "level": "l1",
+        "target": "s102",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-s103",
+        "kind": "label",
+        "level": "l1",
+        "target": "s103",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-s201",
+        "kind": "label",
+        "level": "l2",
+        "target": "s201",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-s202",
+        "kind": "label",
+        "level": "l2",
+        "target": "s202",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-s301",
+        "kind": "label",
+        "level": "l3",
+        "target": "s301",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "dim-south",
+        "kind": "dimension",
+        "level": "l1",
+        "points": [[0, 0], [44, 0], [68, 0], [112, 0]],
+        "offset": -8,
+        "show_total": true
+      },
+      {
+        "id": "dim-east",
+        "kind": "dimension",
+        "level": "l1",
+        "points": [[112, 0], [112, 64]],
+        "offset": -8,
+        "show_total": true
+      },
+      {
+        "id": "north",
+        "kind": "north_arrow",
+        "position": [125, 60],
+        "rotation": 12
+      }
+    ],
+    "underlays": [
+      {
+        "id": "survey",
+        "level": "l1",
+        "uri": "https://example.org/survey-scan.png",
+        "media_type": "image/png",
+        "position": [-5, -5],
+        "rotation": 0,
+        "units_per_pixel": 0.05,
+        "opacity": 0.4,
+        "mirror": "none",
+        "visible": false
+      }
+    ]
+  },
+  "results": [
+    {
+      "profile": "org.example.commercial-gross-area",
+      "revision": "0193a6a1-7f00-7263-d4e5-f60718293a4b",
+      "computed_at": "2026-11-12T20:05:00Z",
+      "generator": {
+        "name": "Example Sketcher",
+        "version": "1.0.0"
+      },
+      "values": [
+        {
+          "scope": {
+            "level": "l1"
+          },
+          "measure": "gross_floor_area",
+          "value": 7168
+        },
+        {
+          "scope": {
+            "level": "l2"
+          },
+          "measure": "gross_floor_area",
+          "value": 7055
+        },
+        {
+          "scope": {
+            "level": "l3"
+          },
+          "measure": "gross_floor_area",
+          "value": 7055
+        },
+        {
+          "scope": {
+            "structure": "bldg"
+          },
+          "measure": "gross_building_area",
+          "value": 21278
+        },
+        {
+          "scope": {
+            "level": "l1"
+          },
+          "measure": "common_area",
+          "value": 1536
+        },
+        {
+          "scope": {
+            "level": "l2"
+          },
+          "measure": "common_area",
+          "value": 1423
+        },
+        {
+          "scope": {
+            "level": "l3"
+          },
+          "measure": "common_area",
+          "value": 864
+        },
+        {
+          "scope": {
+            "unit": "t101"
+          },
+          "measure": "tenant_area",
+          "value": 2816
+        },
+        {
+          "scope": {
+            "unit": "t102"
+          },
+          "measure": "tenant_area",
+          "value": 1496
+        },
+        {
+          "scope": {
+            "unit": "t103"
+          },
+          "measure": "tenant_area",
+          "value": 1320
+        },
+        {
+          "scope": {
+            "unit": "t201"
+          },
+          "measure": "tenant_area",
+          "value": 2816
+        },
+        {
+          "scope": {
+            "unit": "t202"
+          },
+          "measure": "tenant_area",
+          "value": 2816
+        },
+        {
+          "scope": {
+            "unit": "t301"
+          },
+          "measure": "tenant_area",
+          "value": 6191
+        },
+        {
+          "scope": {
+            "space": "parking"
+          },
+          "measure": "site_parking",
+          "value": 6720
+        },
+        {
+          "scope": {
+            "space": "parking-rear"
+          },
+          "measure": "site_parking",
+          "value": 6720
+        }
+      ]
+    }
+  ]
+}
