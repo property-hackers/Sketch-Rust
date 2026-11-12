@@ -47,8 +47,12 @@ try {
 
     $version = [regex]::Match((Get-Content -LiteralPath 'Cargo.toml' -Raw), 'version\s*=\s*"([^"]+)"').Groups[1].Value
     if (-not $SkipPackage) {
-        try { & (Join-Path $PSScriptRoot 'package.ps1') -NativePreview | Out-Null }
-        catch { Write-Warning "package.ps1: $($_.Exception.Message)" }
+        # A release must include the Apex compatibility component; package.ps1
+        # builds with SKETCH_REQUIRE_APEX=1 unless it is already set (use '0'
+        # for an Apex-less dev package). A failed package build must not fall
+        # through to a stale staged folder.
+        if (-not $env:SKETCH_REQUIRE_APEX) { $env:SKETCH_REQUIRE_APEX = '1' }
+        & (Join-Path $PSScriptRoot 'package.ps1') -NativePreview | Out-Null
     }
     $stage = Get-ChildItem -LiteralPath 'target\package' -Directory -Filter "SketchRust-$version-*" |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1

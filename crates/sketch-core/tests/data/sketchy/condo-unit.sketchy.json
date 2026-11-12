@@ -1,0 +1,504 @@
+{
+  "format": "sketchy",
+  "format_version": "0.1",
+  "$schema": "https://property-hackers.github.io/sketchy/schema/0.1/sketchy.schema.json",
+  "id": "0193a2d4-1c5e-7f30-a1b2-c3d4e5f60718",
+  "revision": {
+    "id": "0193a2d4-2d6f-7041-b2c3-d4e5f6071829",
+    "parents": [],
+    "sequence": 1,
+    "created_at": "2026-11-11T09:15:00Z",
+    "author": {
+      "name": "Alex Example"
+    },
+    "generator": {
+      "name": "Example Sketcher",
+      "version": "1.0.0"
+    },
+    "message": "Unit 7C measured",
+    "status": "draft",
+    "content_hash": "sha256:09e69ba72a6d583ab04379634ab88250059dae5fdd1ebf68b00517c511861a54"
+  },
+  "derived_from": {
+    "document": "0193a000-0000-7000-8000-00000000c7c0",
+    "revision": "0193a000-0000-7000-8000-00000000c7c1"
+  },
+  "title": "Unit 7C, 200 Sample Street",
+  "generator": {
+    "name": "Example Sketcher",
+    "version": "1.0.0"
+  },
+  "length_unit": "m",
+  "measured_to": "interior_face",
+  "property": {
+    "address": "200 Sample Street, Unit 7C, Sampletown",
+    "identifiers": [
+      {
+        "scheme": "unit",
+        "value": "7C"
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "u7c",
+      "name": "Unit 7C",
+      "kind": "dwelling"
+    }
+  ],
+  "structures": [
+    {
+      "id": "tower",
+      "name": "Sample Street Residences",
+      "kind": "multifamily",
+      "levels": [
+        {
+          "id": "f7",
+          "name": "Level 7",
+          "grade": "above",
+          "sequence": 7,
+          "ceiling_height": 2.7,
+          "spaces": [
+            {
+              "id": "unit-7c",
+              "name": "Unit 7C",
+              "use": "unit",
+              "finished": true,
+              "unit": "u7c",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [10, 0], [10, 9], [0, 9]]
+              },
+              "source": {
+                "method": "scanned",
+                "device": "phone depth sensor",
+                "accuracy": 0.02,
+                "reference": "org.example.scans/7c-001"
+              }
+            },
+            {
+              "id": "living",
+              "name": "Living and kitchen",
+              "use": "living_room",
+              "finished": true,
+              "within": "unit-7c",
+              "unit": "u7c",
+              "measured_to": "centerline",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [6, 0], [6, 5], [0, 5]]
+              }
+            },
+            {
+              "id": "bed1",
+              "name": "Bedroom 1",
+              "use": "bedroom",
+              "finished": true,
+              "within": "unit-7c",
+              "unit": "u7c",
+              "measured_to": "centerline",
+              "shape": {
+                "type": "polygon",
+                "points": [[6, 0], [10, 0], [10, 5], [6, 5]]
+              }
+            },
+            {
+              "id": "bed2",
+              "name": "Bedroom 2",
+              "use": "bedroom",
+              "finished": true,
+              "within": "unit-7c",
+              "unit": "u7c",
+              "measured_to": "centerline",
+              "shape": {
+                "type": "polygon",
+                "points": [[6, 5], [10, 5], [10, 9], [6, 9]]
+              }
+            },
+            {
+              "id": "bath",
+              "name": "Bathroom",
+              "use": "bathroom",
+              "finished": true,
+              "within": "unit-7c",
+              "unit": "u7c",
+              "measured_to": "centerline",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 5], [3, 5], [3, 9], [0, 9]]
+              }
+            },
+            {
+              "id": "hall",
+              "name": "Hall",
+              "use": "hall",
+              "finished": true,
+              "within": "unit-7c",
+              "unit": "u7c",
+              "measured_to": "centerline",
+              "shape": {
+                "type": "polygon",
+                "points": [[3, 5], [6, 5], [6, 9], [3, 9]]
+              }
+            },
+            {
+              "id": "balcony",
+              "name": "Balcony",
+              "use": "balcony",
+              "enclosure": "open",
+              "unit": "u7c",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [6, 0], [6, -2], [0, -2]],
+                "bulges": [0, 0, 0.2, 0]
+              }
+            }
+          ],
+          "walls": [
+            {
+              "id": "w-south",
+              "start": [0, 0],
+              "end": [10, 0],
+              "thickness": 0.25,
+              "kind": "exterior",
+              "alignment": "center",
+              "bounds": [
+                {
+                  "space": "unit-7c",
+                  "edge": 0
+                }
+              ]
+            },
+            {
+              "id": "w-east",
+              "start": [10, 0],
+              "end": [10, 9],
+              "thickness": 0.25,
+              "kind": "exterior",
+              "alignment": "center",
+              "bounds": [
+                {
+                  "space": "unit-7c",
+                  "edge": 1
+                }
+              ]
+            },
+            {
+              "id": "w-north",
+              "start": [10, 9],
+              "end": [0, 9],
+              "thickness": 0.2,
+              "kind": "party",
+              "alignment": "center",
+              "bounds": [
+                {
+                  "space": "unit-7c",
+                  "edge": 2
+                }
+              ]
+            },
+            {
+              "id": "w-west",
+              "start": [0, 9],
+              "end": [0, 0],
+              "thickness": 0.2,
+              "kind": "party",
+              "alignment": "center",
+              "bounds": [
+                {
+                  "space": "unit-7c",
+                  "edge": 3
+                }
+              ]
+            },
+            {
+              "id": "w-x6",
+              "start": [6, 0],
+              "end": [6, 9],
+              "thickness": 0.1,
+              "kind": "interior",
+              "alignment": "center"
+            },
+            {
+              "id": "w-y5",
+              "start": [0, 5],
+              "end": [10, 5],
+              "thickness": 0.1,
+              "kind": "interior",
+              "alignment": "center"
+            },
+            {
+              "id": "w-x3",
+              "start": [3, 5],
+              "end": [3, 9],
+              "thickness": 0.1,
+              "kind": "interior",
+              "alignment": "center"
+            },
+            {
+              "id": "w-rail",
+              "start": [6, -2],
+              "end": [0, -2],
+              "bulge": 0.2,
+              "thickness": 0.1,
+              "kind": "half_wall",
+              "alignment": "center",
+              "bounds": [
+                {
+                  "space": "balcony",
+                  "edge": 2
+                }
+              ]
+            }
+          ],
+          "openings": [
+            {
+              "id": "d-entry",
+              "kind": "door",
+              "wall": "w-north",
+              "offset": 4.1,
+              "width": 0.9,
+              "swing": "in_right"
+            },
+            {
+              "id": "d-balcony",
+              "kind": "sliding_door",
+              "wall": "w-south",
+              "offset": 1.5,
+              "width": 2.4
+            },
+            {
+              "id": "win-bed1",
+              "kind": "window",
+              "wall": "w-east",
+              "offset": 1.5,
+              "width": 1.8,
+              "height": 1.5,
+              "sill_height": 0.9
+            },
+            {
+              "id": "win-bed2",
+              "kind": "window",
+              "wall": "w-east",
+              "offset": 6,
+              "width": 1.5,
+              "height": 1.5,
+              "sill_height": 0.9
+            },
+            {
+              "id": "d-bed1",
+              "kind": "door",
+              "wall": "w-x6",
+              "offset": 3.6,
+              "width": 0.8,
+              "swing": "in_left"
+            },
+            {
+              "id": "d-bed2",
+              "kind": "door",
+              "wall": "w-x6",
+              "offset": 6.6,
+              "width": 0.8,
+              "swing": "in_right"
+            },
+            {
+              "id": "d-bath",
+              "kind": "door",
+              "wall": "w-x3",
+              "offset": 1.6,
+              "width": 0.8,
+              "swing": "in_left"
+            },
+            {
+              "id": "o-hall",
+              "kind": "cased_opening",
+              "wall": "w-y5",
+              "offset": 3.6,
+              "width": 1.6
+            }
+          ],
+          "features": [
+            {
+              "id": "island",
+              "kind": "island",
+              "position": [3, 3.6],
+              "width": 2,
+              "length": 0.9
+            },
+            {
+              "id": "range",
+              "kind": "range",
+              "position": [0.4, 3.6],
+              "rotation": 90,
+              "width": 0.76,
+              "length": 0.65
+            },
+            {
+              "id": "tub",
+              "kind": "tub",
+              "position": [0.4, 7],
+              "rotation": 90,
+              "width": 1.7,
+              "length": 0.75
+            },
+            {
+              "id": "toilet",
+              "kind": "toilet",
+              "position": [2.5, 8.6],
+              "width": 0.4,
+              "length": 0.7
+            },
+            {
+              "id": "vanity",
+              "kind": "sink",
+              "position": [1.5, 5.4],
+              "width": 0.9,
+              "length": 0.5
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "styles": {
+      "room": {
+        "stroke": "#111827",
+        "stroke_width": 0.03,
+        "fill": "#f8fafc"
+      }
+    },
+    "element_styles": {
+      "living": "room",
+      "bed1": "room",
+      "bed2": "room",
+      "bath": "room",
+      "hall": "room"
+    },
+    "pages": [
+      {
+        "id": "p1",
+        "name": "Unit 7C",
+        "size": "a4",
+        "orientation": "portrait",
+        "scale": 0.01,
+        "views": [
+          {
+            "structure": "tower",
+            "levels": ["f7"]
+          }
+        ]
+      }
+    ],
+    "annotations": [
+      {
+        "id": "lbl-living",
+        "kind": "label",
+        "level": "f7",
+        "target": "living",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-bed1",
+        "kind": "label",
+        "level": "f7",
+        "target": "bed1",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-bed2",
+        "kind": "label",
+        "level": "f7",
+        "target": "bed2",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-bath",
+        "kind": "label",
+        "level": "f7",
+        "target": "bath",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "lbl-hall",
+        "kind": "label",
+        "level": "f7",
+        "target": "hall",
+        "fields": ["name", "area"]
+      },
+      {
+        "id": "dim-south",
+        "kind": "dimension",
+        "level": "f7",
+        "points": [[0, 0], [6, 0], [10, 0]],
+        "offset": -3,
+        "show_total": true,
+        "target": {
+          "wall": "w-south"
+        }
+      }
+    ]
+  },
+  "results": [
+    {
+      "profile": "org.example.unit-interior-area",
+      "revision": "0193a2d4-2d6f-7041-b2c3-d4e5f6071829",
+      "computed_at": "2026-11-11T09:15:00Z",
+      "generator": {
+        "name": "Example Sketcher",
+        "version": "1.0.0"
+      },
+      "values": [
+        {
+          "scope": {
+            "unit": "u7c"
+          },
+          "measure": "interior_area",
+          "value": 90
+        },
+        {
+          "scope": {
+            "space": "balcony"
+          },
+          "measure": "balcony",
+          "value": 14.4
+        },
+        {
+          "scope": {
+            "space": "living"
+          },
+          "measure": "room_area",
+          "value": 30
+        },
+        {
+          "scope": {
+            "space": "bed1"
+          },
+          "measure": "room_area",
+          "value": 20
+        },
+        {
+          "scope": {
+            "space": "bed2"
+          },
+          "measure": "room_area",
+          "value": 16
+        },
+        {
+          "scope": {
+            "space": "bath"
+          },
+          "measure": "room_area",
+          "value": 12
+        },
+        {
+          "scope": {
+            "space": "hall"
+          },
+          "measure": "room_area",
+          "value": 12
+        }
+      ]
+    }
+  ]
+}

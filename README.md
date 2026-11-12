@@ -75,6 +75,19 @@ cargo test --workspace
 `STATUS.md` is the running change ledger; `ACCEPTANCE.md` records the parity checks
 against the original app.
 
+## Contributing
+
+Humans and AI agents welcome. Please:
+
+- **Use test-driven development.** Write a failing test first, make it pass, then tidy up.
+  Every change ships with tests.
+- **Use an agent skills framework.** [Superpowers](https://github.com/obra/superpowers) is
+  recommended: it gives agents brainstorming, planning, TDD and code-review workflows. Put
+  designs in `docs/superpowers/specs/` and plans in `docs/superpowers/plans/`.
+- **Keep changes focused,** and run `cargo test --workspace` and
+  `cargo clippy --workspace -- -D warnings` before opening a pull request.
+- **Review what your agent wrote** before you submit it. You're responsible for the change.
+
 ## License
 
 MIT — see [LICENSE](LICENSE). The CADdillo residential symbols are CC0 1.0; the

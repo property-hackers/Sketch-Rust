@@ -510,6 +510,82 @@ fn is_sketch_file(path: &std::path::Path) -> bool {
 enum SketchFileFormat {
     Skx,
     Json,
+    /// An opened `sketchy.json` file; Save never overwrites it (Save As only).
+    SketchyJson,
+}
+
+/// A decoded sketch file: its save model, container format and an optional
+/// notice about content the app keeps but does not display.
+struct DecodedSketch {
+    model: serde_json::Value,
+    format: SketchFileFormat,
+    notice: Option<String>,
+}
+
+/// Longest error text a toast shows.
+const TOAST_ERROR_MAX: usize = 200;
+
+/// Truncate an error message for a toast (on a character boundary).
+fn toast_error(message: &str) -> String {
+    if message.chars().count() <= TOAST_ERROR_MAX {
+        return message.to_owned();
+    }
+    let cut: String = message.chars().take(TOAST_ERROR_MAX).collect();
+    format!("{cut}...")
+}
+
+/// "Opened. Not shown in Sketch Rust: 12 openings, 1 structure."
+fn unshown_notice(summary: &[(String, usize)]) -> Option<String> {
+    if summary.is_empty() {
+        return None;
+    }
+    let parts: Vec<String> = summary.iter().map(|(l, n)| format!("{n} {l}")).collect();
+    Some(format!("Opened. Not shown in Sketch Rust: {}.", parts.join(", ")))
+}
+
+/// Decode `.sketchy.json`, `.skx` or save-model JSON bytes into a save model.
+fn decode_sketch_bytes(bytes: &[u8]) -> Result<DecodedSketch, String> {
+    // Only JSON text can be Sketchy; binary `.skx` bytes skip the Sketchy read.
+    let text = bytes.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(bytes);
+    let looks_json = text.iter().find(|b| !b.is_ascii_whitespace()) == Some(&b'{');
+    let sketchy = if looks_json {
+        sketch_core::sketchy::read(bytes)
+    } else {
+        Ok(None)
+    };
+    match sketchy {
+        Ok(Some(doc)) => {
+            let model =
+                sketch_core::sketchy::convert::from_sketchy(&doc).map_err(|e| e.to_string())?;
+            let notice = unshown_notice(&sketch_core::sketchy::unshown_summary(&doc));
+            return Ok(DecodedSketch {
+                model,
+                format: SketchFileFormat::SketchyJson,
+                notice,
+            });
+        }
+        Ok(None) => {}
+        Err(e) => return Err(e.to_string()),
+    }
+    let (model, format) = if let Ok(read) = sketch_core::skx::read(bytes) {
+        (read.model, SketchFileFormat::Skx)
+    } else if let Ok(model) = serde_json::from_slice::<serde_json::Value>(bytes) {
+        (model, SketchFileFormat::Json)
+    } else {
+        return Err("Invalid sketch file format.".into());
+    };
+    Ok(DecodedSketch {
+        model,
+        format,
+        notice: None,
+    })
+}
+
+/// True when `path` names a Sketchy JSON file (`*.sketchy.json`).
+fn is_sketchy_name(path: &std::path::Path) -> bool {
+    path.file_name()
+        .and_then(|n| n.to_str())
+        .is_some_and(|n| n.to_ascii_lowercase().ends_with(".sketchy.json"))
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -1579,7 +1655,11 @@ impl App {
 
     /// The title bar pill: where the document stands against its file.
     fn save_state(&self) -> &'static str {
-        if self.dirty {
+        let sketchy_source = self
+            .current_file
+            .as_ref()
+            .is_some_and(|f| f.format == SketchFileFormat::SketchyJson);
+        if self.dirty || sketchy_source {
             "Unsaved"
         } else if self.current_file.is_some() {
             "Saved"
@@ -3531,18 +3611,19 @@ impl App {
                     .add_filter("Sketch", SKETCH_OPEN_EXTENSIONS)
                     .pick_file()
                 {
-                    let read = std::fs::read(&path).ok().and_then(|bytes| {
-                        if let Ok(skk) = sketch_core::skx::read(&bytes) {
-                            Some(skk.model)
-                        } else {
-                            serde_json::from_slice::<serde_json::Value>(&bytes).ok()
-                        }
-                    });
-                    let Some(model) = read else {
-                        return self
-                            .toasts
-                            .show("Error importing file: could not read the sketch.".to_string());
+                    let decoded = match std::fs::read(&path) {
+                        Ok(bytes) => decode_sketch_bytes(&bytes),
+                        Err(e) => Err(e.to_string()),
                     };
+                    let decoded = match decoded {
+                        Ok(decoded) => decoded,
+                        Err(e) => {
+                            return self
+                                .toasts
+                                .show(toast_error(&format!("Error importing file: {e}")));
+                        }
+                    };
+                    let model = decoded.model;
                     return self.import_state(&model, &path.to_string_lossy());
                 }
                 Task::none()
@@ -8075,12 +8156,17 @@ impl App {
             Ok(bytes) => bytes,
             Err(e) => return self.toasts.show(format!("Could not open sketch: {e}")),
         };
-        let (model, format) = if let Ok(read) = sketch_core::skx::read(&bytes) {
-            (read.model, SketchFileFormat::Skx)
-        } else if let Ok(model) = serde_json::from_slice::<serde_json::Value>(&bytes) {
-            (model, SketchFileFormat::Json)
-        } else {
-            return self.toasts.show("Invalid sketch file format.".into());
+        let DecodedSketch {
+            model,
+            format,
+            notice,
+        } = match decode_sketch_bytes(&bytes) {
+            Ok(decoded) => decoded,
+            Err(e) => {
+                return self
+                    .toasts
+                    .show(toast_error(&format!("Could not open sketch: {e}")))
+            }
         };
         if model.get("pages").and_then(|v| v.as_array()).is_none() {
             return self.toasts.show("Invalid sketch file format.".into());
@@ -8090,6 +8176,7 @@ impl App {
             .and_then(|s| s.to_str())
             .unwrap_or("")
             .to_owned();
+        let stem = stem.strip_suffix(".sketchy").unwrap_or(&stem).to_owned();
         let task = self.apply_model(&model, &stem);
         let name = path
             .file_name()
@@ -8098,7 +8185,10 @@ impl App {
             .to_owned();
         self.current_file = Some(CurrentFile { path, format });
         self.record_recent(&name, &model.to_string());
-        task
+        match notice {
+            Some(notice) => Task::batch([task, self.toasts.show(notice)]),
+            None => task,
+        }
     }
 
     /// Save overwrites the bound file. First save and Save As choose a path.
@@ -8106,8 +8196,11 @@ impl App {
     fn save_to_file(&mut self, save_as: bool) -> Task<Message> {
         let mut model = self.build_save_model();
         let mut fallback_toast = None;
+        // A Sketchy JSON source is never overwritten: Save acts as Save As.
         let target = if !save_as {
-            self.current_file.clone()
+            self.current_file
+                .clone()
+                .filter(|file| file.format != SketchFileFormat::SketchyJson)
         } else {
             None
         };
@@ -8125,14 +8218,23 @@ impl App {
                         "json"
                     }
                 };
-                let Some(path) = file_dialogs::save_sketch(&format!("{}.{}", self.file_name, ext))
-                else {
+                let base = self.file_name.strip_suffix(".sketchy").unwrap_or(&self.file_name);
+                let Some(path) = file_dialogs::save_sketch(&format!("{base}.{ext}")) else {
                     return Task::none();
                 };
                 let path = match std::path::absolute(path) {
                     Ok(path) => path,
                     Err(e) => return self.toasts.show(format!("Could not save sketch: {e}")),
                 };
+                // Writing save-model JSON over a Sketchy file would destroy it.
+                let is_source = self.current_file.as_ref().is_some_and(|f| {
+                    f.format == SketchFileFormat::SketchyJson && f.path == path
+                });
+                if is_source || is_sketchy_name(&path) {
+                    return self.toasts.show(
+                        "Saving as Sketchy isn't available yet - choose a .skx name.".into(),
+                    );
+                }
                 let format = if path
                     .extension()
                     .and_then(|s| s.to_str())
@@ -8157,6 +8259,10 @@ impl App {
                 sketch_core::skx::write(&model, &Default::default()).map_err(|e| e.to_string())
             }
             SketchFileFormat::Json => serde_json::to_vec_pretty(&model).map_err(|e| e.to_string()),
+            // Save and Save As never target a Sketchy file (see above).
+            SketchFileFormat::SketchyJson => {
+                Err("Saving as Sketchy isn't available yet.".to_string())
+            }
         };
         let bytes = match bytes {
             Ok(bytes) => bytes,
@@ -9983,11 +10089,187 @@ mod tests {
         assert_eq!((to8(c.r), to8(c.g), to8(c.b)), (96, 96, 96));
     }
 
+    fn sketchy_example(name: &str) -> std::path::PathBuf {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../sketch-core/tests/data/sketchy")
+            .join(format!("{name}.sketchy.json"))
+    }
+
     #[test]
-    fn save_model_round_trips_a_rich_sketch() {
-        // buildSaveModel ↔ applySaveModel: walls, areas, symbols, labels,
-        // pages, options, the id cursor, layers and subject info survive a
-        // save into a fresh app — in the original's exact JSON keys.
+    fn opens_sketchy_json_examples() {
+        for name in ["single-family", "condo-unit", "commercial-building"] {
+            let (mut app, _) = App::boot(1.);
+            let _ = app.open_sketch_path(sketchy_example(name));
+            if let Some(text) = app.toasts.text() {
+                assert!(text.starts_with("Opened. Not shown"), "{name}: {text}");
+            }
+            assert!(!app.pages.pages.is_empty(), "{name}: no pages");
+            let file = app.current_file.as_ref().expect("bound file");
+            assert_eq!(file.format, SketchFileFormat::SketchyJson);
+            if name == "single-family" {
+                assert!(!app.drawing.polygons.is_empty(), "house spaces on page 1");
+            }
+            if name == "condo-unit" {
+                assert!(!app.drawing.lines.is_empty(), "condo walls");
+            }
+        }
+    }
+
+    /// A fresh per-test scratch directory (pid + test name), removed on drop.
+    struct TempDir(std::path::PathBuf);
+
+    impl TempDir {
+        fn new(test: &str) -> Self {
+            let dir = std::env::temp_dir()
+                .join(format!("sketch-rust-{}-{test}", std::process::id()));
+            let _ = std::fs::remove_dir_all(&dir);
+            std::fs::create_dir_all(&dir).expect("create temp dir");
+            Self(dir)
+        }
+    }
+
+    impl Drop for TempDir {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    fn open_sketchy_copy(dir: &TempDir) -> (App, std::path::PathBuf, Vec<u8>) {
+        let copy = dir.0.join("copy.sketchy.json");
+        std::fs::copy(sketchy_example("condo-unit"), &copy).unwrap();
+        let original = std::fs::read(&copy).unwrap();
+        let (mut app, _) = App::boot(1.);
+        let _ = app.open_sketch_path(copy.clone());
+        assert!(app.current_file.is_some());
+        (app, copy, original)
+    }
+
+    #[test]
+    fn sketchy_json_save_does_not_overwrite() {
+        let dir = TempDir::new("sketchy_save_no_overwrite");
+        let (mut app, copy, original) = open_sketchy_copy(&dir);
+        assert_eq!(app.save_state(), "Unsaved");
+        app.file_name = "copy.sketchy".into();
+        let dest = dir.0.join("saved-as.skx");
+        let (_, requests) = file_dialogs::with_save_path(Some(dest.clone()), || {
+            let _ = app.update(Message::Key(input::KeyCmd::Save));
+        });
+        assert_eq!(requests.len(), 1, "Save falls back to the Save As dialog");
+        assert_eq!(requests[0], "copy.skx", "default name drops `.sketchy`");
+        assert_eq!(std::fs::read(&copy).unwrap(), original);
+        assert!(dest.is_file());
+        assert_eq!(app.current_file.as_ref().unwrap().format, SketchFileFormat::Skx);
+        // Save now writes the bound .skx without prompting.
+        let (_, requests) = file_dialogs::with_save_path(None, || {
+            let _ = app.update(Message::Key(input::KeyCmd::Save));
+        });
+        assert!(requests.is_empty());
+        assert_eq!(std::fs::read(&copy).unwrap(), original);
+    }
+
+    #[test]
+    fn save_as_to_the_sketchy_source_is_refused() {
+        let dir = TempDir::new("sketchy_save_as_source");
+        let (mut app, copy, original) = open_sketchy_copy(&dir);
+        let (_, _) = file_dialogs::with_save_path(Some(copy.clone()), || {
+            let _ = app.save_to_file(true);
+        });
+        assert_eq!(std::fs::read(&copy).unwrap(), original);
+        assert!(app.toasts.text().unwrap().contains("Saving as Sketchy"));
+        assert_eq!(
+            app.current_file.as_ref().unwrap().format,
+            SketchFileFormat::SketchyJson
+        );
+        // Any `.sketchy.json` name is refused, even a new file.
+        let other = dir.0.join("other.sketchy.json");
+        let (_, _) = file_dialogs::with_save_path(Some(other.clone()), || {
+            let _ = app.save_to_file(true);
+        });
+        assert!(!other.exists());
+    }
+
+    #[test]
+    fn cancelled_save_as_keeps_the_sketchy_binding() {
+        let dir = TempDir::new("sketchy_save_as_cancel");
+        let (mut app, copy, original) = open_sketchy_copy(&dir);
+        let (_, requests) = file_dialogs::with_save_path(None, || {
+            let _ = app.save_to_file(true);
+        });
+        assert_eq!(requests.len(), 1);
+        assert_eq!(
+            app.current_file.as_ref().unwrap().format,
+            SketchFileFormat::SketchyJson
+        );
+        assert_eq!(std::fs::read(&copy).unwrap(), original);
+    }
+
+    #[test]
+    fn garbage_sketchy_json_shows_error() {
+        let dir = TempDir::new("sketchy_garbage");
+        let (mut app, _) = App::boot(1.);
+        let before = app.current_file.clone();
+        let bad = dir.0.join("garbage.sketchy.json");
+        std::fs::write(&bad, br#"{"format":"sketchy","format_version":"9.0"}"#).unwrap();
+        let _ = app.open_sketch_path(bad);
+        assert!(app
+            .toasts
+            .text()
+            .unwrap()
+            .starts_with("Could not open sketch:"));
+        assert_eq!(app.current_file, before);
+    }
+
+    #[test]
+    fn toast_errors_are_truncated() {
+        assert_eq!(toast_error("short"), "short");
+        assert!(toast_error(&"x".repeat(500)).chars().count() <= 203);
+    }
+
+    #[test]
+    fn commercial_sketchy_open_reports_unshown_content() {
+        let (mut app, _) = App::boot(1.);
+        let _ = app.open_sketch_path(sketchy_example("commercial-building"));
+        let text = app.toasts.text().expect("unshown-content toast");
+        assert!(text.starts_with("Opened. Not shown in Sketch Rust: "), "{text}");
+    }
+
+    #[test]
+    fn import_decodes_sketchy_files() {
+        let bytes = std::fs::read(sketchy_example("condo-unit")).unwrap();
+        let decoded = decode_sketch_bytes(&bytes).expect("decodes");
+        assert_eq!(decoded.format, SketchFileFormat::SketchyJson);
+        assert!(decoded.model["pages"].as_array().is_some());
+    }
+
+    #[test]
+    fn rich_sketch_round_trips_through_sketchy() {
+        let mut app = rich_app();
+        let model = app.build_save_model();
+        let doc = sketch_core::sketchy::convert::to_sketchy(&model, Some("doc-1"))
+            .expect("to_sketchy");
+        let back = sketch_core::sketchy::convert::from_sketchy(&doc).expect("from_sketchy");
+        let (mut fresh, _) = App::boot(1.0);
+        let _ = fresh.apply_model(&back, "x");
+        // The fresh app loads page 1 of the model; compare against it.
+        let page = &model["pages"][0];
+        let count = |key: &str| page[key].as_array().map_or(0, Vec::len);
+        assert_eq!(fresh.drawing.lines.len(), count("lines"));
+        assert_eq!(fresh.drawing.polygons.len(), count("polygons"));
+        assert_eq!(fresh.drawing.texts.len(), count("labels"));
+        assert_eq!(fresh.drawing.symbols.len(), count("symbols"));
+        assert_eq!(fresh.drawing.lines.len(), 1);
+        assert_eq!(fresh.drawing.polygons.len(), 1);
+        assert_eq!(fresh.drawing.texts.len(), 1);
+        assert_eq!(fresh.drawing.symbols.len(), 1);
+        assert_eq!(fresh.drawing.lines[0].id, 5);
+        assert_eq!(fresh.drawing.polygons[0].id, 6);
+        assert_eq!(fresh.drawing.symbols[0].id, 8);
+        assert_eq!(fresh.drawing.texts[0].id, 9);
+    }
+
+    /// An app holding a rich two-page sketch (walls, area, symbol, label,
+    /// subject info, layout and a dimension chain).
+    fn rich_app() -> App {
         let (mut app, _) = App::boot(1.0);
         app.drawing.lines.push(sketch_core::model::SketchLine {
             id: 5,
@@ -10104,6 +10386,15 @@ mod tests {
             dimension_anchor: None,
         });
 
+        app
+    }
+
+    #[test]
+    fn save_model_round_trips_a_rich_sketch() {
+        // buildSaveModel ↔ applySaveModel: walls, areas, symbols, labels,
+        // pages, options, the id cursor, layers and subject info survive a
+        // save into a fresh app — in the original's exact JSON keys.
+        let mut app = rich_app();
         let model = app.build_save_model();
 
         // The original's keys, off the model itself.

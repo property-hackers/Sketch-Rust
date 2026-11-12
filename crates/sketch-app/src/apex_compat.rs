@@ -1,4 +1,12 @@
 //! Native, in-process Apex desktop protocol compatibility.
+/// The embedded Apex component. Empty when the build had no Apex SDK.
+#[cfg(all(windows, apex_component))]
+const COMPONENT: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/apex-compat.dll"));
+#[cfg(all(windows, not(apex_component)))]
+const COMPONENT: &[u8] = &[];
+#[cfg(windows)]
+const NOT_INCLUDED: &str = "This build does not include Apex compatibility.";
+
 #[cfg(windows)]
 mod clr {
     use std::path::{Path, PathBuf};
@@ -12,13 +20,12 @@ mod clr {
     }
     impl Runtime {
         pub fn load(root: &Path) -> Result<Self, String> {
+            if super::COMPONENT.is_empty() {
+                return Err(super::NOT_INCLUDED.into());
+            }
             std::fs::create_dir_all(root).map_err(|e| e.to_string())?;
             let component = root.join("apex-compat.dll");
-            std::fs::write(
-                &component,
-                include_bytes!(concat!(env!("OUT_DIR"), "/apex-compat.dll")),
-            )
-            .map_err(|e| e.to_string())?;
+            std::fs::write(&component, super::COMPONENT).map_err(|e| e.to_string())?;
             unsafe {
                 let meta: ICLRMetaHost =
                     CLRCreateInstance(&CLSID_CLRMetaHost).map_err(|e| e.to_string())?;
@@ -57,7 +64,10 @@ mod clr {
 #[cfg(windows)]
 pub fn probe() -> Result<u32, String> {
     let root = std::env::temp_dir().join(format!("SketchRust-apex-probe-{}", std::process::id()));
-    let bytes = include_bytes!(concat!(env!("OUT_DIR"), "/apex-compat.dll"));
+    let bytes = COMPONENT;
+    if bytes.is_empty() {
+        return Err(NOT_INCLUDED.into());
+    }
     let pe = u32::from_le_bytes(bytes[0x3c..0x40].try_into().unwrap()) as usize;
     if u16::from_le_bytes(bytes[pe + 92..pe + 94].try_into().unwrap()) != 2 {
         return Err("The embedded host component could create a console".into());

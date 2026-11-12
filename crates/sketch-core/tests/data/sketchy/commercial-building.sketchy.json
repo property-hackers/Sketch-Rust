@@ -1,0 +1,618 @@
+{
+  "format": "sketchy",
+  "format_version": "0.1",
+  "$schema": "https://property-hackers.github.io/sketchy/schema/0.1/sketchy.schema.json",
+  "extensions_used": ["org.example.leasing"],
+  "id": "0193a3e5-3e70-7152-c3d4-e5f60718293a",
+  "revision": {
+    "id": "0193a6a1-7f00-7263-d4e5-f60718293a4b",
+    "parents": ["0193a3e5-4f81-7263-d4e5-f60718293a4b", "0193a3e5-5092-7374-e5f6-0718293a4b5c"],
+    "sequence": 3,
+    "created_at": "2026-11-12T20:05:00Z",
+    "author": {
+      "name": "Riley Example"
+    },
+    "generator": {
+      "name": "Example Sketcher",
+      "version": "1.0.0"
+    },
+    "message": "Merged tenant layout updates from leasing and the site survey",
+    "status": "draft",
+    "content_hash": "sha256:192db367cd2b41976b09c028e33503cc347472ffa0d3f3eed633b01826ad65a3"
+  },
+  "history": [
+    {
+      "id": "0193a3e5-3f70-7152-c3d4-e5f60718293a",
+      "parents": [],
+      "sequence": 1,
+      "created_at": "2026-11-05T14:00:00Z",
+      "author": {
+        "name": "Riley Example"
+      },
+      "message": "Base building from survey",
+      "status": "draft"
+    },
+    {
+      "id": "0193a3e5-4f81-7263-d4e5-f60718293a4b",
+      "parents": ["0193a3e5-3f70-7152-c3d4-e5f60718293a"],
+      "sequence": 2,
+      "created_at": "2026-11-08T10:30:00Z",
+      "author": {
+        "name": "Jordan Example"
+      },
+      "message": "Split second floor into suites 201 and 202",
+      "status": "draft"
+    },
+    {
+      "id": "0193a3e5-5092-7374-e5f6-0718293a4b5c",
+      "parents": ["0193a3e5-3f70-7152-c3d4-e5f60718293a"],
+      "sequence": 2,
+      "created_at": "2026-11-09T16:45:00Z",
+      "author": {
+        "name": "Riley Example"
+      },
+      "message": "Added atrium and loading door from site survey",
+      "status": "draft"
+    }
+  ],
+  "title": "300 Commerce Way",
+  "generator": {
+    "name": "Example Sketcher",
+    "version": "1.0.0"
+  },
+  "length_unit": "ft",
+  "measured_to": "exterior_face",
+  "property": {
+    "address": "300 Commerce Way, Sampletown",
+    "identifiers": [
+      {
+        "scheme": "parcel",
+        "value": "00-000-300"
+      }
+    ]
+  },
+  "site": {
+    "georeference": {
+      "crs": "EPSG:4326",
+      "origin": [-100, 40],
+      "bearing": 12
+    },
+    "spaces": [
+      {
+        "id": "parking",
+        "name": "Surface parking",
+        "use": "parking",
+        "shape": {
+          "type": "polygon",
+          "points": [[0, -70], [100, -70], [100, -10], [0, -10]]
+        },
+        "attributes": {
+          "Stalls": "48",
+          "Surface": "Asphalt"
+        }
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "t101",
+      "name": "Suite 101",
+      "kind": "tenant_space"
+    },
+    {
+      "id": "t102",
+      "name": "Suite 102",
+      "kind": "tenant_space"
+    },
+    {
+      "id": "t201",
+      "name": "Suite 201",
+      "kind": "tenant_space"
+    },
+    {
+      "id": "t202",
+      "name": "Suite 202",
+      "kind": "tenant_space"
+    },
+    {
+      "id": "t301",
+      "name": "Suite 301",
+      "kind": "tenant_space",
+      "extras": {
+        "org.example.leasing.status": "leased"
+      }
+    }
+  ],
+  "structures": [
+    {
+      "id": "bldg",
+      "name": "Commerce Way building",
+      "kind": "mixed_use",
+      "levels": [
+        {
+          "id": "l1",
+          "name": "Ground floor",
+          "grade": "above",
+          "sequence": 1,
+          "ceiling_height": 12,
+          "spaces": [
+            {
+              "id": "l1-floor",
+              "name": "Ground floor gross",
+              "use": "floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [100, 0], [100, 60], [0, 60]]
+              }
+            },
+            {
+              "id": "s101",
+              "name": "Suite 101",
+              "use": "retail",
+              "finished": true,
+              "within": "l1-floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [40, 0], [40, 60], [0, 60]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "OCC"
+                }
+              ],
+              "unit": "t101"
+            },
+            {
+              "id": "lobby",
+              "name": "Lobby",
+              "use": "lobby",
+              "finished": true,
+              "within": "l1-floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[40, 0], [60, 0], [60, 60], [40, 60]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "s102",
+              "name": "Suite 102",
+              "use": "retail",
+              "finished": true,
+              "within": "l1-floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[60, 0], [100, 0], [100, 60], [60, 60]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "OCC"
+                }
+              ],
+              "unit": "t102"
+            }
+          ],
+          "features": [
+            {
+              "id": "stair-l1",
+              "kind": "stair",
+              "position": [50, 52],
+              "width": 5,
+              "length": 12,
+              "connects_to": "l2"
+            },
+            {
+              "id": "elev-l1",
+              "kind": "elevator",
+              "position": [50, 8],
+              "width": 7,
+              "length": 7
+            }
+          ],
+          "openings": [
+            {
+              "id": "sf-101",
+              "kind": "door",
+              "space": "s101",
+              "edge": 0,
+              "offset": 17,
+              "width": 6
+            },
+            {
+              "id": "sf-102",
+              "kind": "door",
+              "space": "s102",
+              "edge": 0,
+              "offset": 17,
+              "width": 6
+            },
+            {
+              "id": "main-entry",
+              "kind": "double_door",
+              "space": "lobby",
+              "edge": 0,
+              "offset": 7,
+              "width": 6
+            },
+            {
+              "id": "loading",
+              "kind": "garage_door",
+              "space": "s102",
+              "edge": 2,
+              "offset": 25,
+              "width": 10
+            }
+          ]
+        },
+        {
+          "id": "l2",
+          "name": "Second floor",
+          "grade": "above",
+          "sequence": 2,
+          "ceiling_height": 10,
+          "spaces": [
+            {
+              "id": "l2-floor",
+              "name": "Second floor gross",
+              "use": "floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [100, 0], [100, 60], [0, 60]]
+              }
+            },
+            {
+              "id": "s201",
+              "name": "Suite 201",
+              "use": "office",
+              "finished": true,
+              "within": "l2-floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [45, 0], [45, 60], [0, 60]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "OCC"
+                }
+              ],
+              "unit": "t201"
+            },
+            {
+              "id": "core2",
+              "name": "Core",
+              "use": "circulation",
+              "finished": true,
+              "within": "l2-floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[45, 0], [55, 0], [55, 60], [45, 60]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "s202",
+              "name": "Suite 202",
+              "use": "office",
+              "finished": true,
+              "within": "l2-floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[55, 0], [100, 0], [100, 60], [55, 60]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "OCC"
+                }
+              ],
+              "unit": "t202"
+            }
+          ],
+          "features": [
+            {
+              "id": "stair-l2",
+              "kind": "stair",
+              "position": [50, 52],
+              "width": 5,
+              "length": 12,
+              "connects_to": "l3"
+            },
+            {
+              "id": "elev-l2",
+              "kind": "elevator",
+              "position": [50, 8],
+              "width": 7,
+              "length": 7
+            }
+          ],
+          "voids": [
+            {
+              "id": "atrium-2",
+              "name": "Atrium open to below",
+              "shape": {
+                "type": "circle",
+                "center": [50, 30],
+                "radius": 4
+              }
+            }
+          ]
+        },
+        {
+          "id": "l3",
+          "name": "Third floor",
+          "grade": "above",
+          "sequence": 3,
+          "ceiling_height": 10,
+          "spaces": [
+            {
+              "id": "l3-floor",
+              "name": "Third floor gross",
+              "use": "floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [100, 0], [100, 60], [0, 60]]
+              }
+            },
+            {
+              "id": "s301w",
+              "name": "Suite 301 (west)",
+              "use": "office",
+              "finished": true,
+              "within": "l3-floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[0, 0], [45, 0], [45, 60], [0, 60]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "OCC"
+                }
+              ],
+              "unit": "t301"
+            },
+            {
+              "id": "core3",
+              "name": "Core",
+              "use": "circulation",
+              "finished": true,
+              "within": "l3-floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[45, 0], [55, 0], [55, 60], [45, 60]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "CMN"
+                }
+              ]
+            },
+            {
+              "id": "s301e",
+              "name": "Suite 301 (east)",
+              "use": "office",
+              "finished": true,
+              "within": "l3-floor",
+              "shape": {
+                "type": "polygon",
+                "points": [[55, 0], [100, 0], [100, 60], [55, 60]]
+              },
+              "classifications": [
+                {
+                  "scheme": "org.example.office-measure",
+                  "code": "OCC"
+                }
+              ],
+              "unit": "t301"
+            }
+          ],
+          "features": [
+            {
+              "id": "stair-l3",
+              "kind": "stair",
+              "position": [50, 52],
+              "width": 5,
+              "length": 12
+            },
+            {
+              "id": "elev-l3",
+              "kind": "elevator",
+              "position": [50, 8],
+              "width": 7,
+              "length": 7
+            }
+          ],
+          "voids": [
+            {
+              "id": "atrium-3",
+              "name": "Atrium open to below",
+              "shape": {
+                "type": "circle",
+                "center": [50, 30],
+                "radius": 4
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "classification_schemes": [
+    {
+      "scheme": "org.example.office-measure",
+      "name": "Example office measurement categories",
+      "codes": [
+        {
+          "code": "OCC",
+          "label": "Occupant area"
+        },
+        {
+          "code": "CMN",
+          "label": "Building common area"
+        }
+      ]
+    }
+  ],
+  "presentation": {
+    "pages": [
+      {
+        "id": "p1",
+        "name": "Ground floor",
+        "size": "tabloid",
+        "orientation": "landscape",
+        "scale": 0.0052,
+        "views": [
+          {
+            "structure": "bldg",
+            "levels": ["l1"]
+          }
+        ]
+      },
+      {
+        "id": "p2",
+        "name": "Second floor",
+        "size": "tabloid",
+        "orientation": "landscape",
+        "scale": 0.0052,
+        "views": [
+          {
+            "structure": "bldg",
+            "levels": ["l2"]
+          }
+        ]
+      },
+      {
+        "id": "p3",
+        "name": "Third floor",
+        "size": "tabloid",
+        "orientation": "landscape",
+        "scale": 0.0052,
+        "views": [
+          {
+            "structure": "bldg",
+            "levels": ["l3"]
+          }
+        ]
+      }
+    ],
+    "annotations": [
+      {
+        "id": "north",
+        "kind": "north_arrow",
+        "position": [110, 60],
+        "rotation": 12
+      }
+    ],
+    "underlays": [
+      {
+        "id": "survey",
+        "level": "l1",
+        "uri": "https://example.org/survey-scan.png",
+        "media_type": "image/png",
+        "position": [-5, -5],
+        "rotation": 0,
+        "units_per_pixel": 0.05,
+        "opacity": 0.4,
+        "mirror": "none",
+        "visible": false
+      }
+    ]
+  },
+  "results": [
+    {
+      "profile": "org.example.commercial-gross-area",
+      "revision": "0193a6a1-7f00-7263-d4e5-f60718293a4b",
+      "computed_at": "2026-11-12T20:05:00Z",
+      "generator": {
+        "name": "Example Sketcher",
+        "version": "1.0.0"
+      },
+      "values": [
+        {
+          "scope": {
+            "level": "l1"
+          },
+          "measure": "gross_floor_area",
+          "value": 6000
+        },
+        {
+          "scope": {
+            "level": "l2"
+          },
+          "measure": "gross_floor_area",
+          "value": 5950
+        },
+        {
+          "scope": {
+            "level": "l3"
+          },
+          "measure": "gross_floor_area",
+          "value": 5950
+        },
+        {
+          "scope": {
+            "structure": "bldg"
+          },
+          "measure": "gross_building_area",
+          "value": 17900
+        },
+        {
+          "scope": {
+            "unit": "t101"
+          },
+          "measure": "tenant_area",
+          "value": 2400
+        },
+        {
+          "scope": {
+            "unit": "t102"
+          },
+          "measure": "tenant_area",
+          "value": 2400
+        },
+        {
+          "scope": {
+            "unit": "t201"
+          },
+          "measure": "tenant_area",
+          "value": 2700
+        },
+        {
+          "scope": {
+            "unit": "t202"
+          },
+          "measure": "tenant_area",
+          "value": 2700
+        },
+        {
+          "scope": {
+            "unit": "t301"
+          },
+          "measure": "tenant_area",
+          "value": 5400
+        },
+        {
+          "scope": {
+            "space": "parking"
+          },
+          "measure": "site_parking",
+          "value": 6000
+        }
+      ]
+    }
+  ]
+}

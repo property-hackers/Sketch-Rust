@@ -18,6 +18,7 @@ pub mod joins;
 pub mod model;
 pub mod print_layout;
 mod report_fonts;
+pub mod sketchy;
 pub mod skx;
 pub mod solids;
 pub mod symbol_edit;
