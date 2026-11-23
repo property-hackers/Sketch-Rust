@@ -78,15 +78,21 @@ pub fn top_bar<'a>(
 
     if app.symbol_edit_session.is_none() {
         left = left
-            .push(kit::tooltip(
-                kit::icon_button("folder-open", false, Some(Message::OpenFile), d),
-                "Open (Ctrl+O)",
-                iced::widget::tooltip::Position::Bottom,
+            .push(kit::with_id(
+                "open",
+                kit::tooltip(
+                    kit::icon_button("folder-open", false, Some(Message::OpenFile), d),
+                    "Open (Ctrl+O)",
+                    iced::widget::tooltip::Position::Bottom,
+                ),
             ))
-            .push(kit::tooltip(
-                kit::icon_button("floppy-disk", false, Some(Message::SaveFile), d),
-                "Save (F2)",
-                iced::widget::tooltip::Position::Bottom,
+            .push(kit::with_id(
+                "save",
+                kit::tooltip(
+                    kit::icon_button("floppy-disk", false, Some(Message::SaveFile), d),
+                    "Save (F2)",
+                    iced::widget::tooltip::Position::Bottom,
+                ),
             ));
     }
     left = left.push(doc_btn);
@@ -316,7 +322,7 @@ fn app_mark<'a>(d: Density) -> Element<'a, Message> {
 }
 
 fn menu_trigger<'a>(open: bool, d: Density, compact: bool) -> Element<'a, Message> {
-    if compact {
+    let btn = if compact {
         kit::tooltip(
             kit::icon_button("list", open, Some(Message::Ui(UiMsg::ToggleMenu)), d),
             "Menu",
@@ -324,7 +330,8 @@ fn menu_trigger<'a>(open: bool, d: Density, compact: bool) -> Element<'a, Messag
         )
     } else {
         kit::text_button_with("Menu", Some(Message::Ui(UiMsg::ToggleMenu)), d, open, false)
-    }
+    };
+    kit::with_id("menu", btn)
 }
 
 fn doc_title_button<'a>(app: &'a App, class: SizeClass) -> Element<'a, Message> {
@@ -712,27 +719,30 @@ fn search_trigger<'a>(class: SizeClass, d: Density) -> Element<'a, Message> {
 
 fn primary_actions<'a>(app: &'a App, class: SizeClass, d: Density) -> Vec<Element<'a, Message>> {
     if matches!(class, SizeClass::Compact) {
-        return vec![kit::tooltip(
-            kit::icon_button(
+        return vec![kit::with_id(
+            "export",
+            kit::tooltip(
+                kit::icon_button(
+                    if cfg!(windows) && !app.ui.prefer_export_primary {
+                        "arrow-square-in"
+                    } else {
+                        "export"
+                    },
+                    app.ui.export_menu,
+                    Some(if cfg!(windows) && !app.ui.prefer_export_primary {
+                        Message::Guide(guide::GuideMsg::Open(guide::INTEGRATION_TOPIC))
+                    } else {
+                        Message::Ui(UiMsg::ToggleExportMenu)
+                    }),
+                    d,
+                ),
                 if cfg!(windows) && !app.ui.prefer_export_primary {
-                    "arrow-square-in"
+                    "Send to report"
                 } else {
-                    "export"
+                    "Export"
                 },
-                app.ui.export_menu,
-                Some(if cfg!(windows) && !app.ui.prefer_export_primary {
-                    Message::Guide(guide::GuideMsg::Open(guide::INTEGRATION_TOPIC))
-                } else {
-                    Message::Ui(UiMsg::ToggleExportMenu)
-                }),
-                d,
+                iced::widget::tooltip::Position::Bottom,
             ),
-            if cfg!(windows) && !app.ui.prefer_export_primary {
-                "Send to report"
-            } else {
-                "Export"
-            },
-            iced::widget::tooltip::Position::Bottom,
         )];
     }
 
@@ -744,22 +754,24 @@ fn primary_actions<'a>(app: &'a App, class: SizeClass, d: Density) -> Vec<Elemen
             ))),
             d,
         );
-        let export_more = kit::tooltip(
-            kit::icon_button(
-                "export",
-                app.ui.export_menu,
-                Some(Message::Ui(UiMsg::ToggleExportMenu)),
-                d,
+        let export_more = kit::with_id(
+            "export",
+            kit::tooltip(
+                kit::icon_button(
+                    "export",
+                    app.ui.export_menu,
+                    Some(Message::Ui(UiMsg::ToggleExportMenu)),
+                    d,
+                ),
+                "Export (PNG / SVG / DXF / PDF)",
+                iced::widget::tooltip::Position::Bottom,
             ),
-            "Export (PNG / SVG / DXF / PDF)",
-            iced::widget::tooltip::Position::Bottom,
         );
         vec![send_btn, export_more]
     } else {
-        vec![kit::primary_button(
-            "Export",
-            Some(Message::Ui(UiMsg::ToggleExportMenu)),
-            d,
+        vec![kit::with_id(
+            "export",
+            kit::primary_button("Export", Some(Message::Ui(UiMsg::ToggleExportMenu)), d),
         )]
     }
 }

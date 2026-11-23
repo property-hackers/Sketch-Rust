@@ -562,19 +562,25 @@ fn area_section<'a>(app: &'a App, d: Density) -> Element<'a, Message> {
         .cloned();
 
     let name_row = row![
-        container(kit::field(
-            FieldProps {
-                label: "",
-                value: &name_val,
-                placeholder: "Area name",
-                on_input: Some(Box::new(|s| Message::AreaDialog(AreaDialogMsg::Name(s)))),
-                on_submit: Some(Message::AreaDialog(AreaDialogMsg::Apply)),
-                focused: false,
-            },
-            d,
-        ))
-        .width(Length::Fill),
-        kit::text_button("Apply", Some(Message::AreaDialog(AreaDialogMsg::Apply)), d),
+        kit::with_id(
+            "area-name",
+            container(kit::field(
+                FieldProps {
+                    label: "",
+                    value: &name_val,
+                    placeholder: "Area name",
+                    on_input: Some(Box::new(|s| Message::AreaDialog(AreaDialogMsg::Name(s)))),
+                    on_submit: Some(Message::AreaDialog(AreaDialogMsg::Apply)),
+                    focused: false,
+                },
+                d,
+            ))
+            .width(Length::Fill),
+        ),
+        kit::with_id(
+            "area-apply",
+            kit::text_button("Apply", Some(Message::AreaDialog(AreaDialogMsg::Apply)), d),
+        ),
     ]
     .spacing(SPACE_1)
     .align_y(Alignment::Center)
@@ -592,10 +598,13 @@ fn area_section<'a>(app: &'a App, d: Density) -> Element<'a, Message> {
             d,
         ))
         .width(Length::Fill),
-        kit::text_button(
-            "Chooser",
-            Some(Message::AreaWorkflow(WorkflowMsg::Open(poly.id))),
-            d,
+        kit::with_id(
+            "area-type-chooser",
+            kit::text_button(
+                "Chooser",
+                Some(Message::AreaWorkflow(WorkflowMsg::Open(poly.id))),
+                d,
+            ),
         ),
     ]
     .spacing(SPACE_1)

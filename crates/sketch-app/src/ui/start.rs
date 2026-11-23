@@ -441,7 +441,10 @@ pub fn layer<'a>(app: &'a App, size_class: SizeClass, d: Density) -> Option<Elem
             .font(BARLOW_SEMIBOLD)
             .size(18.0)
             .color(tokens::text()),
-        kit::primary_button("New sketch", Some(m(Msg::NewSketch)), d),
+        kit::with_id(
+            "new-sketch",
+            kit::primary_button("New sketch", Some(m(Msg::NewSketch)), d),
+        ),
         start_action_row("folder-simple", "Open a file", m(Msg::OpenFile), d),
         start_action_row("layout", "Import a CAD drawing", m(Msg::ImportCad), d),
         start_action_row(
@@ -552,7 +555,10 @@ pub fn layer<'a>(app: &'a App, size_class: SizeClass, d: Density) -> Option<Elem
             .size(TEXT_16)
             .color(tokens::text()),
         Space::new().width(Length::Fill),
-        kit::text_button("Blank canvas", Some(m(Msg::Close)), d),
+        kit::with_id(
+            "blank-canvas",
+            kit::text_button("Blank canvas", Some(m(Msg::Close)), d),
+        ),
         kit::icon_button("x", false, Some(m(Msg::Close)), d),
     ]
     .spacing(SPACE_2)

@@ -35,7 +35,9 @@ use crate::color_dialog::{
 };
 use crate::dialog::{Action, Dialog, DialogMsg};
 use crate::disto::{Disto, DistoMsg, Phase as DistoPhase};
-use crate::guide::{Block as GuideBlock, Guide, GuideMsg, INTEGRATION_TOPIC, TOPICS};
+#[cfg(windows)]
+use crate::guide::INTEGRATION_TOPIC;
+use crate::guide::{Block as GuideBlock, Guide, GuideMsg, TOPICS};
 use crate::icons::mono;
 use crate::options::{BoolKey, FormatKey, NumKey, Options, StrKey, FONTS, FONT_SIZES};
 use crate::options_dialog::{

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "iced": {
+      "command": "/Users/chasepursley/.asdf/installs/rust/1.97.0/bin/iced-mcp",
+      "env": {}
+    }
+  }
+}

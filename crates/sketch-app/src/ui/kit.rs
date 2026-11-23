@@ -32,6 +32,14 @@ const TOOLTIP_DELAY: Duration = Duration::from_millis(450);
 pub const LONG_PRESS_DELAY: Duration = Duration::from_millis(500);
 pub const LONG_PRESS_SLOP_PX: f32 = 8.0;
 
+/// Wrap a control so agents can target it as `#id` (iced 0.14 `Button` has no `.id()`).
+pub fn with_id<'a>(
+    id: impl Into<widget::Id>,
+    content: impl Into<Element<'a, Message>>,
+) -> Element<'a, Message> {
+    container(content).id(id).into()
+}
+
 // ---------------------------------------------------------------------------
 // Shared visual helpers
 // ---------------------------------------------------------------------------

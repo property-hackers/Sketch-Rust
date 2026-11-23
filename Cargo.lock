@@ -403,6 +403,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
+name = "base64"
+version = "0.23.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac07cdecf99051d9a5238b80f35af32cdeba5b336e55d957b318b50137e18da5"
+
+[[package]]
 name = "bit-set"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1806,6 +1812,35 @@ dependencies = [
  "iced_winit",
  "image",
  "thiserror 2.0.21",
+]
+
+[[package]]
+name = "iced-mcp"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca092bc2e8ce0fd04fe5bb9f8382d02e9728a4abbfd1f85036d780e8b74788be"
+dependencies = [
+ "base64 0.23.1",
+ "block2 0.5.1",
+ "futures",
+ "iced",
+ "iced-mcp-protocol",
+ "iced_winit",
+ "objc2 0.5.3",
+ "objc2-app-kit 0.2.2",
+ "objc2-foundation 0.2.2",
+ "png 0.18.1",
+ "serde_json",
+]
+
+[[package]]
+name = "iced-mcp-protocol"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0016ed58f848e4287a5eb3067eac0baa3a8b838ee6fe56ca0966db3436eae9ee"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -4111,6 +4146,7 @@ dependencies = [
  "btleplug",
  "getrandom 0.3.4",
  "iced",
+ "iced-mcp",
  "iced_runtime",
  "iced_test",
  "image",
@@ -4736,7 +4772,7 @@ version = "0.45.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "80be9b06fbae3b8b303400ab20778c80bbaf338f563afe567cf3c9eea17b47ef"
 dependencies = [
- "base64",
+ "base64 0.22.1",
  "data-url",
  "flate2",
  "fontdb",

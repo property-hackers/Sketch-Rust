@@ -175,6 +175,11 @@ pub enum Message {
     OpenFile,
     SaveFile,
     SaveFileAs,
+    /// Agent/dev: draw a closed exterior rectangle (feet) with the wall tool.
+    AgentDrawExteriorRect {
+        width_ft: f64,
+        height_ft: f64,
+    },
     /// `executeCommand('rotate-sketch')` / R: `rotateSketch(90)`.
     RotateSketch,
     /// L / R: `rotateSketch(degrees)`.
@@ -3556,6 +3561,13 @@ impl App {
                 self.settings_extra.clear();
                 self.sync_edit_tools();
                 self.autosave_baseline();
+                Task::none()
+            }
+            Message::AgentDrawExteriorRect {
+                width_ft,
+                height_ft,
+            } => {
+                self.draw_exterior_rect_ft(width_ft, height_ft);
                 Task::none()
             }
             Message::OpenFile => Task::perform(file_dialogs::open_sketch(), |path| {
@@ -9649,6 +9661,49 @@ impl App {
         self.toasts.show(message)
     }
 
+    /// Pen-down exterior walls forming a closed `width_ft` × `height_ft` rectangle.
+    fn draw_exterior_rect_ft(&mut self, width_ft: f64, height_ft: f64) {
+        let _ = self.update(Message::Key(input::KeyCmd::DrawExterior));
+        let _ = self.update(Message::Key(input::KeyCmd::Enter));
+        // Right, down, left, up — same order as the e2e closed-square smoke.
+        for (len, dir) in [
+            (width_ft, 2u8),
+            (height_ft, 4u8),
+            (width_ft, 6u8),
+            (height_ft, 0u8),
+        ] {
+            let text = if len.fract() == 0.0 {
+                format!("{}", len as i64)
+            } else {
+                format!("{len}")
+            };
+            // `buffer_key` only accepts one character at a time.
+            for c in text.chars() {
+                let key = match c {
+                    '0' => "0",
+                    '1' => "1",
+                    '2' => "2",
+                    '3' => "3",
+                    '4' => "4",
+                    '5' => "5",
+                    '6' => "6",
+                    '7' => "7",
+                    '8' => "8",
+                    '9' => "9",
+                    '.' => ".",
+                    _ => continue,
+                };
+                let _ = self.update(Message::Key(input::KeyCmd::Buffer(key)));
+            }
+            let _ = self.update(Message::Key(input::KeyCmd::Arrow {
+                dir,
+                ctrl: false,
+                shift: false,
+            }));
+            let _ = self.update(Message::Key(input::KeyCmd::Enter));
+        }
+    }
+
     /// Save overwrites the bound file. First save and Save As choose a path.
     /// Commit the new target only after a successful atomic write. With
     /// `exit_when_saved` (the unsaved-changes prompt's Save), the app closes
@@ -11102,7 +11157,84 @@ fn main() -> iced::Result {
             *startup = Some(file);
         }
     }
-    program(ui_scale).run()
+    // Bridge only when built with `--features agent` and `ICED_MCP=1`
+    // (and not 0/false). Agents: ICED_MCP=1 cargo run -p sketch-app --features agent
+    #[cfg(feature = "agent")]
+    {
+        if iced_mcp::enabled() {
+            iced_mcp::attach(program(ui_scale))
+                .state(|app: &App| {
+                    format!(
+                        "file={:?} mode={:?} polys={} lines={} sel_polys={} sel_lines={} dirty={}",
+                        app.current_file.as_ref().map(|f| &f.path),
+                        app.view.mode,
+                        app.drawing.polygons.len(),
+                        app.drawing.lines.len(),
+                        app.selection.polys.len(),
+                        app.selection.lines.len(),
+                        app.dirty,
+                    )
+                })
+                .action(
+                    "new_blank",
+                    "Close the start screen and reset to a blank untitled sketch. No args.",
+                    |_| Ok(Message::NewFile),
+                )
+                .action(
+                    "draw_rect",
+                    "Draw a closed exterior rectangle in feet. Args: {\"width\": number, \"height\": number}.",
+                    |args| {
+                        let width = args
+                            .get("width")
+                            .and_then(|v| v.as_f64())
+                            .ok_or_else(|| "draw_rect needs numeric \"width\"".to_string())?;
+                        let height = args
+                            .get("height")
+                            .and_then(|v| v.as_f64())
+                            .ok_or_else(|| "draw_rect needs numeric \"height\"".to_string())?;
+                        if width <= 0.0 || height <= 0.0 {
+                            return Err("width and height must be positive".into());
+                        }
+                        Ok(Message::AgentDrawExteriorRect {
+                            width_ft: width,
+                            height_ft: height,
+                        })
+                    },
+                )
+                .action(
+                    "save_to",
+                    "Save the sketch to a path (skips the native picker). Args: {\"path\": \"/abs/file.skx\"} (also .sketchie / .json).",
+                    |args| {
+                        let path = args
+                            .get("path")
+                            .and_then(|v| v.as_str())
+                            .filter(|s| !s.is_empty())
+                            .ok_or_else(|| "save_to needs non-empty \"path\"".to_string())?;
+                        let path = std::path::PathBuf::from(path);
+                        let ext = path
+                            .extension()
+                            .and_then(|e| e.to_str())
+                            .unwrap_or("skx")
+                            .to_owned();
+                        Ok(Message::DialogPicked(
+                            DialogRequest::SaveSketch {
+                                ext,
+                                fallback_toast: None,
+                                exit_when_saved: false,
+                            },
+                            Some(path),
+                        ))
+                    },
+                )
+                .run()
+        } else {
+            program(ui_scale).run()
+        }
+    }
+    #[cfg(not(feature = "agent"))]
+    {
+        program(ui_scale).run()
+    }
 }
 
 #[cfg(test)]
@@ -11111,6 +11243,23 @@ mod tests {
     use sketch_core::geometry::Pt;
     use sketch_core::model::WallType;
     use sketch_core::symbols::WallSnap;
+
+    #[test]
+    fn agent_draw_exterior_rect_closes_a_four_wall_area() {
+        let (mut app, _) = App::boot(1.0);
+        let _ = app.update(Message::AgentDrawExteriorRect {
+            width_ft: 10.0,
+            height_ft: 10.0,
+        });
+        assert_eq!(app.drawing.lines.len(), 4);
+        assert_eq!(app.drawing.polygons.len(), 1);
+        assert_eq!(app.view.mode, view_state::Mode::DrawExterior);
+        let area = app.drawing.polygons[0].area;
+        assert!(
+            (area - 100.0).abs() < 0.5,
+            "expected ~100 sf for 10×10, got {area}"
+        );
+    }
 
     #[test]
     fn bundled_demo_makes_a_recent_entry() {

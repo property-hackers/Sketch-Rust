@@ -145,6 +145,7 @@ pub fn layer<'a>(app: &'a App) -> Option<Element<'a, Message>> {
     .height(Length::Fill);
 
     let name_input = text_input("Optional area name…", &c.name)
+        .id("area-chooser-name")
         .on_input(|s| send(WorkflowMsg::Name(s)))
         .on_submit(send(WorkflowMsg::Submit))
         .size(TEXT_12)
@@ -175,13 +176,19 @@ pub fn layer<'a>(app: &'a App) -> Option<Element<'a, Message>> {
     let footer = row![
         repeat_cb,
         Space::new().width(Length::Fill),
-        kit::text_button("Cancel", Some(send(WorkflowMsg::Cancel)), d),
-        kit::primary_button(
-            apply_label,
-            effective_code
-                .is_some()
-                .then_some(send(WorkflowMsg::Submit)),
-            d,
+        kit::with_id(
+            "area-chooser-cancel",
+            kit::text_button("Cancel", Some(send(WorkflowMsg::Cancel)), d),
+        ),
+        kit::with_id(
+            "area-chooser-apply",
+            kit::primary_button(
+                apply_label,
+                effective_code
+                    .is_some()
+                    .then_some(send(WorkflowMsg::Submit)),
+                d,
+            ),
         ),
     ]
     .spacing(SPACE_2)

@@ -9,6 +9,8 @@ license-file.workspace = true
 # alone with --no-default-features instead of opening a GPU device per test.
 default = ["gpu"]
 gpu = ["iced/wgpu"]
+# Dev-only: iced-mcp bridge for Cursor/Claude/Codex. Leave off for release builds.
+agent = ["dep:iced-mcp"]
 
 [dependencies]
 sketch-core = { path = "../sketch-core" }
@@ -26,6 +28,9 @@ serde_json_canonicalizer = "0.3"
 # PNG export uses the canvas renderer on an offscreen software surface.
 iced_runtime = "0.14"
 resvg = "0.45.1"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+iced-mcp = { version = "0.3", optional = true, default-features = false }
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.61.3", features = ["Data_Pdf", "Storage_Streams", "Win32_System_Com", "Win32_System_Ole", "Win32_System_Variant", "Win32_System_WinRT", "Win32_System_Threading", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Gdi", "Win32_UI_HiDpi", "Win32_Security"] }

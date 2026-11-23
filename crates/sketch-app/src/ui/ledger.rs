@@ -652,33 +652,36 @@ fn loose_area_row<'a>(
     .spacing(SPACE_2)
     .align_y(Alignment::Center);
     let open = Message::AreaWorkflow(WorkflowMsg::Open(area.id));
-    kit::long_press(
-        mouse_area(
-            button(
-                container(body)
-                    .height(Length::Fixed(area_row_h(d)))
-                    .padding([0, 8])
-                    .align_y(Alignment::Center)
-                    .width(Length::Fill),
+    kit::with_id(
+        format!("area-row-{}", area.id),
+        kit::long_press(
+            mouse_area(
+                button(
+                    container(body)
+                        .height(Length::Fixed(area_row_h(d)))
+                        .padding([0, 8])
+                        .align_y(Alignment::Center)
+                        .width(Length::Fill),
+                )
+                .padding(0)
+                .width(Length::Fill)
+                .on_press(Message::CalcsArea(area.id))
+                .style(move |_, status| button::Style {
+                    background: Some(Background::Color(match status {
+                        button::Status::Hovered => tokens::hover(),
+                        _ if selected => tokens::accent_soft(),
+                        _ => Color::TRANSPARENT,
+                    })),
+                    border: Border {
+                        radius: RADIUS_CONTROL.into(),
+                        ..Border::default()
+                    },
+                    ..button::Style::default()
+                }),
             )
-            .padding(0)
-            .width(Length::Fill)
-            .on_press(Message::CalcsArea(area.id))
-            .style(move |_, status| button::Style {
-                background: Some(Background::Color(match status {
-                    button::Status::Hovered => tokens::hover(),
-                    _ if selected => tokens::accent_soft(),
-                    _ => Color::TRANSPARENT,
-                })),
-                border: Border {
-                    radius: RADIUS_CONTROL.into(),
-                    ..Border::default()
-                },
-                ..button::Style::default()
-            }),
-        )
-        .on_right_press(open.clone()),
-        open,
+            .on_right_press(open.clone()),
+            open,
+        ),
     )
 }
 
@@ -736,6 +739,10 @@ fn area_details<'a>(app: &'a App, area: &calcs::AreaRow, depth: usize) -> Elemen
 
 fn layer_row<'a>(app: &'a App, r: &LayerRow, kind: RowKind, d: Density) -> Element<'a, Message> {
     let id = r.id.as_str();
+    let area_poly = match &kind {
+        RowKind::Area { poly, .. } => Some(*poly),
+        _ => None,
+    };
     let is_folder = matches!(kind, RowKind::Folder(_));
     let dragging = app.dock.layer_drag.as_deref() == Some(id);
     let drop_mark: Option<DragPos> = if dragging {
@@ -1000,13 +1007,17 @@ fn layer_row<'a>(app: &'a App, r: &LayerRow, kind: RowKind, d: Density) -> Eleme
     };
 
     let layer_menu_msg = Message::LayerRowMenu(id.to_owned());
-    kit::long_press(
+    let row = kit::long_press(
         mouse_area(marked)
             .on_enter(Message::LayerHoverRow(id.to_owned()))
             .on_exit(Message::LayerHoverRowGone(id.to_owned()))
             .on_right_press(layer_menu_msg.clone()),
         layer_menu_msg,
-    )
+    );
+    match area_poly {
+        Some(poly) => kit::with_id(format!("area-row-{poly}"), row),
+        None => row,
+    }
 }
 
 fn drop_rule<'a>() -> Element<'a, Message> {
